@@ -4,13 +4,6 @@ from rest_framework import serializers
 
 
 class InterestRatesCreditSerializer(serializers.Serializer):
-    """
-        cls.publication_id = publication_id
-        cls.dataset_id = dataset_id
-        cls.measure_id = measure_id
-        cls.from_year = from_year
-        cls.to_year = to_year
-    """
     publication_id = serializers.IntegerField(
             required=True,
             help_text="ID публикации. Допустимые значения: 14 (В целом по Российской Федерации), "
@@ -18,14 +11,32 @@ class InterestRatesCreditSerializer(serializers.Serializer):
     )
     dataset_id = serializers.IntegerField(
             required=True,
-            help_text="ID набора данных. Допустимые значения: 25 (Ставки по кредитам нефинансовым организациям), "
+            help_text="ID набора данных. Зависит от publication_id:\n"
+                      "- Для 14: 25 (Ставки по кредитам нефинансовым организациям), "
                       "26 (Ставки по кредитам нефинансовым организациям-субъектам МСП), "
                       "27 (Ставки по кредитам физическим лицам), 28 (Ставки по автокредитам), "
-                      "29 (Ставки по ипотечным жилищным кредитам)."
+                      "29 (Ставки по ипотечным жилищным кредитам).\n"
+                      "- Для 15: 30 (Ставки по кредитам нефинансовым организациям в рублях), "
+                      "31 (Ставки по кредитам нефинансовым организациям-субъектам МСП в рублях), "
+                      "32 (Ставки по кредитам физическим лицам в рублях), 33 (Ставки по автокредитам в рублях), "
+                      "34 (Ставки по ипотечным жилищным кредитам).\n"
+                      "- Для 16: 35 (Ставки по кредитам нефинансовым организациям), "
+                      "36 (Ставки по кредитам нефинансовым организациям-субъектам МСП)."
     )
     measure_id = serializers.IntegerField(
             required=True,
-            help_text="ID разреза. Допустимые значения: 2 (В рублях), 3 (В долларах США), 4 (В евро)."
+            help_text="ID разреза. Зависит от publication_id:\n"
+                      "- Для 14: 2 (В рублях), 3 (В долларах США), 4 (В евро).\n"
+                      "- Для 15: 23 (Центральный федеральный округ), 42 (Северо-Западный федеральный округ), "
+                      "55 (Южный федеральный округ), 64 (Северо-Кавказский федеральный округ), "
+                      "72 (Приволжский федеральный округ), 87 (Уральский федеральный округ), "
+                      "95 (Сибирский федеральный округ), 106 (Дальневосточный федеральный округ).\n"
+                      "- Для 16: 7 (Сельское хозяйство), 8 (Добыча полезных ископаемых), 9 (Обрабатывающие "
+                      "производства),"
+                      "10 (Обеспечение электрической энергией), 11 (Водоснабжение), 12 (Строительство), "
+                      "13 (Торговля), 14 (Транспортировка), 15 (Гостиницы), 16 (Информация и связь), "
+                      "17 (Недвижимость), 18 (Профессиональная деятельность), 19 (Образование), "
+                      "20 (Культура и спорт), 21 (Прочее)."
     )
     from_year = serializers.IntegerField(
             required=True,
@@ -42,19 +53,39 @@ class InterestRatesCreditSerializer(serializers.Serializer):
         raise serializers.ValidationError({"message": "publication_id должен быть равен числу в массиве [14, 15, 16]"})
 
     def validate_dataset_id(self, value: int):
-        if value in (25, 26, 27, 28, 29):
-            return value
-        raise serializers.ValidationError(
-                {"message": "dataset_id должен быть равен числу в массиве [25, 26, 27, 28, 29]"})
+        publication_id = self.initial_data.get('publication_id')
+        valid_datasets = {
+            14: (25, 26, 27, 28, 29),
+            15: (30, 31, 32, 33, 34),
+            16: (35, 36)
+        }
+        if publication_id not in valid_datasets:
+            raise serializers.ValidationError({"message": "publication_id должен быть указан для проверки dataset_id"})
+        if value not in valid_datasets.get(publication_id, ()):
+            values = list(valid_datasets.get(publication_id))
+            raise serializers.ValidationError(
+                    {"message": f"dataset_id должен быть равен числу в массиве {values}"
+                                f" для publication_id={publication_id}"})
+        return value
 
     def validate_measure_id(self, value: int):
-        if value in (2, 3, 4):
-            return value
-        raise serializers.ValidationError({"message": "measure_id должен быть равен числу в массиве [2, 3, 4]"})
+        publication_id = self.initial_data.get('publication_id')
+        valid_measures = {
+            14: (2, 3, 4),
+            15: (23, 42, 55, 64, 72, 87, 95, 106),
+            16: (7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21)
+        }
+        if publication_id not in valid_measures:
+            raise serializers.ValidationError({"message": "publication_id должен быть указан для проверки measure_id"})
+        if value not in valid_measures.get(publication_id, ()):
+            values = list(valid_measures.get(publication_id))
+            raise serializers.ValidationError({"message": f"measure_id должен быть равен числу в массиве {values}"
+                                                          f" для publication_id={publication_id}"})
+        return value
 
     def validate(self, data):
-        from_year = data.get('from_year')
-        to_year = data.get('to_year')
+        from_year = data.get("from_year")
+        to_year = data.get("to_year")
         if from_year and to_year:
             if from_year > to_year:
                 raise serializers.ValidationError({"message": "from_year не может быть больше to_year"})

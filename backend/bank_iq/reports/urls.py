@@ -4,6 +4,6 @@ from .views import InterestRatesCreditAPIView
 
 
 urlpatterns = [
-    path("parse/publication/interest_rates_credit", InterestRatesCreditAPIView.as_view(),
-         name="publication-InterestRatesCreditAPIView"),
+    path("parse/interest_rates_credit", InterestRatesCreditAPIView.as_view(),
+         name="InterestRatesCreditAPIView"),
 ]

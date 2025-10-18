@@ -1,31 +1,14 @@
+import logging
 from types import SimpleNamespace
 
 import requests
-from requests import RequestException
+from requests.exceptions import RequestException
+
+
+logger = logging.getLogger(__name__)
 
 
 class InterestRatesCreditParser:
-    """
-    Введите id публикации:
-    id:14 title:В целом по Российской Федерации
-    id:15 title:В территориальном разрезе
-    id:16 title:В разрезе по видам экономической деятельности
-
-    Введите id показателя:
-    id:25, title:Ставки по кредитам нефинансовым организациям
-    id:26, title:Ставки по кредитам нефинансовым организациям-субъектам МСП
-    id:27, title:Ставки по кредитам физическим лицам
-    id:28, title:Ставки по автокредитам
-    id:29, title:Ставки по ипотечным жилищным кредитам
-
-    Введите id разреза:
-    id:2, title:В рублях
-    id:3, title:В долларах США
-    id:4, title:В евро
-
-    Введите год начала периода:2014  # example
-    Введите год окончания периода:2025  # example
-    """
     BASE_URL = 'http://www.cbr.ru/dataservice'
 
     @classmethod
@@ -36,11 +19,21 @@ class InterestRatesCreditParser:
         cls.from_year = from_year
         cls.to_year = to_year
 
+        logger.info('requested params: '
+                    f'publication_id = {cls.publication_id}'
+                    f'dataset_id = {cls.dataset_id}'
+                    f'measure_id = {cls.measure_id}'
+                    f'from_year = {cls.from_year}'
+                    f'to_year = {cls.to_year}')
+
         years_params = {'measureId': cls.measure_id, 'datasetId': cls.dataset_id}
         try:
             response_years = requests.get(f"{cls.BASE_URL}/years", params=years_params)
             response_years.raise_for_status()
-            years = response_years.json(object_hook=lambda d: SimpleNamespace(**d))[0]
+            years_data = response_years.json(object_hook=lambda d: SimpleNamespace(**d))
+            if not years_data:
+                return {'message': 'Не удалось получить доступные годы от API'}
+            years = years_data[0]
             if cls.from_year < years.FromYear or cls.to_year > years.ToYear:
                 return {'message': f'Информация доступна только с {years.FromYear} по {years.ToYear} год'}
 
@@ -51,8 +44,12 @@ class InterestRatesCreditParser:
                 'datasetId': cls.dataset_id,
                 "measureId": cls.measure_id
             }
-            response_data = requests.get(f"{cls.BASE_URL}/data", params=payload)
+            response_data = requests.get(f'{cls.BASE_URL}/data', params=payload)
             response_data.raise_for_status()
-            return response_data.json()
+            data = response_data.json()
+            if not data.get('RawData'):
+                return {'message': 'Нет данных для указанных параметров'}
+            return data
         except RequestException as e:
-            return {"message": f"Ошибка внешнего API: {str(e)}"}
+            logger.error(f'Ошибка при запросе к API ЦБ РФ: {str(e)}')
+            return {'message': f'Ошибка внешнего API: {str(e)}'}
