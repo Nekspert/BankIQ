@@ -24,7 +24,7 @@ from dotenv import load_dotenv
 load_dotenv(BASE_DIR / '.env')
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'test-secret-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DJANGO_DEBUG', False)
@@ -40,6 +40,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'rest_framework',
+    'drf_spectacular',
+
+    'reports.apps.ReportsConfig',
 ]
 
 MIDDLEWARE = [
@@ -117,3 +122,15 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',  # Схема для автоматической генерации API-документации
+}
+
+# Настройки для drf-spectacular
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'User Management API',  # Название API
+    'DESCRIPTION': 'API сервиса BankIQ',  # Описание API
+    'VERSION': '1.0.0',  # Версия API
+    'SERVE_INCLUDE_SCHEMA': False,  # Отключение схемы в ответах API
+}
