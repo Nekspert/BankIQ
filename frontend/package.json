@@ -12,9 +12,11 @@
   "dependencies": {
     "@tanstack/react-query": "^5.90.2",
     "@tanstack/react-query-devtools": "^5.90.2",
+    "axios": "^1.12.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.9.3",
+    "recharts": "^3.3.0",
     "sass": "^1.93.2"
   },
   "devDependencies": {

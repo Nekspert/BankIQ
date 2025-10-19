@@ -1,3 +1,9 @@
+import { StatisticTable } from '@/features/statistic-table/StatisticTable';
+
 export const MainPage = () => {
-  return <div>MainPage</div>;
+  return (
+    <div>
+      <StatisticTable />
+    </div>
+  );
 };
