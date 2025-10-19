@@ -1,0 +1,45 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    env_file:
+      - backend/.env
+    environment:
+      - DATABASE_URL=sqlite:////data/db.sqlite3
+    ports:
+      - "8000:8000"
+    networks:
+      - bankIQ
+    volumes:
+      - db_data:/data
+
+  migrations:
+    build:
+      context: ./backend
+    container_name: migrations
+    command: ["python", "manage.py", "migrate"]
+    environment:
+      - DATABASE_URL=sqlite:////data/db.sqlite3
+    volumes:
+      - db_data:/data
+    depends_on:
+      - backend
+    restart: no
+
+#  frontend:
+#    ...
+
+volumes:
+  db_data:
+
+networks:
+  bankIQ:
+    driver: bridge
