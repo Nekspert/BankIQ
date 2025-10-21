@@ -16,7 +16,8 @@ type TableData = Record<string, Row>;
 
 interface ChartProps {
   data: TableData;
-  columns: string[];
+  columns: string[]; // all columns
+  selectedColumns?: string[]; // subset to display
 }
 
 const COLORS = [
@@ -32,17 +33,37 @@ const COLORS = [
   '#E11D48',
 ];
 
-export const StatisticChart: React.FC<ChartProps> = ({ data, columns }) => {
+export const StatisticChart: React.FC<ChartProps> = ({
+  data,
+  columns,
+  selectedColumns,
+}) => {
+  const active =
+    selectedColumns && selectedColumns.length > 0 ? selectedColumns : columns;
+
   const chartData = useMemo(() => {
     return Object.entries(data).map(([dt, row]) => {
       const obj: Record<string, number | string | undefined> = { dt };
-      columns.forEach((col) => {
+      active.forEach((col) => {
         const v = row[col];
         obj[col] = typeof v === 'number' ? Number(v.toFixed(2)) : undefined;
       });
       return obj;
     });
-  }, [data, columns]);
+  }, [data, active]);
+
+  if (!data) return null;
+
+  if (active.length === 0) {
+    return (
+      <div className={styles['chart-wrapper']}>
+        <h4 className={styles['chart-title']}>Динамика показателей</h4>
+        <div style={{ padding: 16, color: '#666' }}>
+          Нет выбранных показателей для отображения.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles['chart-wrapper']}>
@@ -75,7 +96,7 @@ export const StatisticChart: React.FC<ChartProps> = ({ data, columns }) => {
             height={60}
             wrapperStyle={{ paddingBottom: 16 }}
           />
-          {columns.map((col, idx) => (
+          {active.map((col, idx) => (
             <Line
               key={col}
               type="monotone"
