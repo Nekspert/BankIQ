@@ -8,7 +8,7 @@ from requests.exceptions import RequestException
 logger = logging.getLogger(__name__)
 
 
-class InterestRatesCreditParser:
+class InterestRatesParser:
     BASE_URL = 'http://www.cbr.ru/dataservice'
 
     @classmethod
