@@ -203,9 +203,25 @@ class UnitSerializer(serializers.Serializer):
     val = serializers.CharField(help_text="Название единицы измерения (например, '% годовых').")
 
 
-class InterestRatesResponseSerializer(serializers.Serializer):
+class ResponseSerializer(serializers.Serializer):
     DTRange = DTRangeSerializer(many=True, help_text="Диапазон доступных годов для данных.")
     RawData = DataItemSerializer(many=True, help_text="Список данных о процентных ставках.")
     SType = STypeSerializer(many=True, help_text="Информация о публикации и наборе данных.")
     headerData = HeaderDataSerializer(many=True, help_text="Описание элементов (категорий кредитов).")
     units = UnitSerializer(many=True, help_text="Список единиц измерения.")
+
+
+class CheckRequestSerializer(serializers.Serializer):
+    publication_id = serializers.IntegerField(required=False)
+    dataset_id = serializers.IntegerField(required=False)
+    measure_id = serializers.IntegerField(required=False)
+
+
+class CheckResponseSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    title = serializers.CharField()
+    status = serializers.CharField()
+
+
+class CheckYearsResponseSerializer(serializers.Serializer):
+    years = serializers.ListSerializer(child=serializers.IntegerField(), help_text="Список [FromYear, ToYear]")

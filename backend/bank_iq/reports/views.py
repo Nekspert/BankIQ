@@ -4,8 +4,155 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from core.parsers.interest_rates_parser import InterestRatesParser
-from .serializers import InterestRatesCreditSerializer, InterestRatesDepositSerializer, InterestRatesResponseSerializer
+from core.parsers.cbr_parser import CBRParser
+from .serializers import CheckRequestSerializer, CheckResponseSerializer, CheckYearsResponseSerializer, \
+    InterestRatesCreditSerializer, \
+    InterestRatesDepositSerializer, \
+    ResponseSerializer
+
+
+class CheckValidDataAPIView(APIView):
+    @extend_schema(
+            summary="Список публикаций / датасетов / разрезов / лет (проверка доступных параметров)",
+            description=(
+                    "Эндпоинт для получения возможных значений для параметров запроса к API ЦБ: "
+                    "список публикаций, датасетов для указанной публикации, разрезов (measures) для указанного датасета "
+                    "и диапазон доступных лет для указанного датасета + разреза. "
+                    "Если не передавать параметры — вернётся список публикаций. "
+                    "Если передать только publication_id — вернутся датасеты для этой публикации. "
+                    "Если передать publication_id и dataset_id — вернутся measures для датасета. "
+                    "Если передать все три — вернётся диапазон лет (FromYear, ToYear)."
+            ),
+            request=CheckRequestSerializer,
+            responses={
+                200: OpenApiResponse(
+                        response=CheckResponseSerializer(many=True),
+                        description="Успешный ответ с одним из наборов данных: publication_ids / dataset_ids / measure_ids / years",
+                        examples=[
+                            OpenApiExample(
+                                    name="Пример ответа — список публикаций",
+                                    value={
+                                        "publication_ids": [
+                                            {"id": 14, "title": "В целом по Российской Федерации",
+                                             "status": "value [searchable]"},
+                                            {"id": 15, "title": "В территориальном разрезе",
+                                             "status": "value [searchable]"},
+                                            {"id": 16, "title": "По видам экономической деятельности",
+                                             "status": "value [searchable]"}
+                                        ]
+                                    }
+                            ),
+                            OpenApiExample(
+                                    name="Пример ответа — список датасетов для publication_id=14",
+                                    value={
+                                        "dataset_ids": [
+                                            {"id": 25, "title": "Ставки по кредитам нефинансовым организациям",
+                                             "status": "value [searchable]"},
+                                            {"id": 26, "title": "Ставки по кредитам МСП",
+                                             "status": "value [searchable]"},
+                                            {"id": 27, "title": "Ставки по кредитам физическим лицам",
+                                             "status": "value [searchable]"}
+                                        ]
+                                    }
+                            ),
+                            OpenApiExample(
+                                    name="Пример ответа — список measures для dataset_id=25",
+                                    value={
+                                        "measure_ids": [
+                                            {"id": 2, "title": "В рублях", "status": "value [searchable]"},
+                                            {"id": 3, "title": "В долларах США", "status": "value [searchable]"},
+                                            {"id": 4, "title": "В евро", "status": "value [searchable]"}
+                                        ]
+                                    }
+                            ),
+                            OpenApiExample(
+                                    name="Пример ответа — years для dataset+measure",
+                                    value={"years": [2014, 2025]}
+                            )
+                        ]
+                ),
+                400: OpenApiResponse(
+                        description="Ошибка валидации входных данных.",
+                        examples=[
+                            OpenApiExample(
+                                    name="Неправильный publication_id",
+                                    value={"message": "publication_id должен быть числом из допустимого набора"}
+                            ),
+                            OpenApiExample(
+                                    name="Неправильный dataset_id",
+                                    value={"message": "dataset_id должен соответствовать указанной publication_id"}
+                            ),
+                            OpenApiExample(
+                                    name="Неправильный measure_id",
+                                    value={
+                                        "message": "measure_id должен соответствовать указанному dataset_id / publication_id"}
+                            )
+                        ]
+                ),
+                422: OpenApiResponse(
+                        description="Пустой результат или ошибка внешнего API.",
+                        examples=[
+                            OpenApiExample(
+                                    name="Нет данных или пустой ответ",
+                                    value={"message": "Нет данных для указанных параметров"}
+                            ),
+                            OpenApiExample(
+                                    name="Ошибка внешнего API",
+                                    value={"message": "Ошибка внешнего API: <описание ошибки>"}
+                            )
+                        ]
+                )
+            },
+            examples=[
+                OpenApiExample(
+                        name="Пример запроса — получить все публикации (пустой body)",
+                        value={}
+                ),
+                OpenApiExample(
+                        name="Пример запроса — получить датасеты для publication_id=14",
+                        value={"publication_id": 14}
+                ),
+                OpenApiExample(
+                        name="Пример запроса — получить measures для dataset_id=25 (publication_id=14)",
+                        value={"publication_id": 14, "dataset_id": 25}
+                ),
+                OpenApiExample(
+                        name="Пример запроса — получить years для publication+dataset+measure",
+                        value={"publication_id": 14, "dataset_id": 25, "measure_id": 2}
+                )
+            ]
+    )
+    def post(self, request: Request, *args, **kwargs) -> Response:
+        serializer = CheckRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        params = serializer.validated_data
+
+        data = CBRParser.check_available_params(
+                publication_id=params.get("publication_id"),
+                dataset_id=params.get("dataset_id"),
+                measure_id=params.get("measure_id"),
+        )
+
+        if "message" in data:
+            return Response(data, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+        if "publication_ids" in data:
+            resp_ser = CheckResponseSerializer(instance=data["publication_ids"], many=True)
+            return Response(resp_ser.data, status=status.HTTP_200_OK)
+
+        if "dataset_ids" in data:
+            resp_ser = CheckResponseSerializer(instance=data["dataset_ids"], many=True)
+            return Response(resp_ser.data, status=status.HTTP_200_OK)
+
+        if "measure_ids" in data:
+            resp_ser = CheckResponseSerializer(instance=data["measure_ids"], many=True)
+            return Response(resp_ser.data, status=status.HTTP_200_OK)
+
+        if "years" in data:
+            resp_ser = CheckYearsResponseSerializer(instance={"years": data["years"]})
+            return Response(resp_ser.data, status=status.HTTP_200_OK)
+
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 class InterestRatesCreditAPIView(APIView):
@@ -20,7 +167,7 @@ class InterestRatesCreditAPIView(APIView):
             request=InterestRatesCreditSerializer,
             responses={
                 200: OpenApiResponse(
-                        response=InterestRatesResponseSerializer,
+                        response=ResponseSerializer,
                         description="Успешный ответ с данными о процентных ставках",
                         examples=[
                             OpenApiExample(
@@ -269,7 +416,7 @@ class InterestRatesCreditAPIView(APIView):
         serializer.is_valid(raise_exception=True)
         params = serializer.validated_data
 
-        data = InterestRatesParser.parse(
+        data = CBRParser.parse(
                 publication_id=params.get("publication_id"),
                 dataset_id=params.get("dataset_id"),
                 measure_id=params.get("measure_id"),
@@ -279,7 +426,7 @@ class InterestRatesCreditAPIView(APIView):
         if "message" in data:
             return Response(data, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
-        response_serializer = InterestRatesResponseSerializer(instance=data)
+        response_serializer = ResponseSerializer(instance=data)
         return Response(response_serializer.data, status=status.HTTP_200_OK)
 
 
@@ -557,7 +704,7 @@ class InterestRatesDepositAPIView(APIView):
         serializer.is_valid(raise_exception=True)
         params = serializer.validated_data
 
-        data = InterestRatesParser.parse(
+        data = CBRParser.parse(
                 publication_id=params.get("publication_id"),
                 dataset_id=params.get("dataset_id"),
                 measure_id=params.get("measure_id"),
@@ -567,5 +714,5 @@ class InterestRatesDepositAPIView(APIView):
         if "message" in data:
             return Response(data, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
-        response_serializer = InterestRatesResponseSerializer(instance=data)
+        response_serializer = ResponseSerializer(instance=data)
         return Response(response_serializer.data, status=status.HTTP_200_OK)
