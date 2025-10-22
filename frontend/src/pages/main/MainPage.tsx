@@ -2,9 +2,18 @@ import { useMemo, useState } from 'react';
 import { StatisticTable } from '@/features/statistic-table/StatisticTable';
 import styles from './styles.module.scss';
 import type { GetStatisticParams } from '@/shared/api/hooks/statistic/types';
-import TableFilterPanel, {
-  type TableItem,
-} from '@/features/table-filter-panel/TableFilterPanel';
+import TableFilterPanel from '@/features/table-filter-panel/TableFilterPanel';
+
+interface TableItem {
+  id: string;
+  title: string;
+}
+
+interface TableConfig {
+  requestData: GetStatisticParams;
+  endpoint: string;
+  minYear: number;
+}
 
 const summaryInfo: GetStatisticParams = {
   publication_id: 14,
@@ -26,7 +35,7 @@ const depositInfo: GetStatisticParams = {
   publication_id: 18,
   dataset_id: 37,
   measure_id: 2,
-  from_year: 2015,
+  from_year: 2023,
   to_year: 2025,
 };
 
@@ -36,30 +45,47 @@ export const MainPage: React.FC = () => {
       {
         id: 'summary',
         title: 'Сводная статистика',
-        requestData: summaryInfo,
-        endpoint: 'interest_rates_credit',
       },
       {
         id: 'territorial',
         title: 'Территориальная статистика',
-        requestData: territorialInfo,
-        endpoint: 'interest_rates_credit',
       },
       {
         id: 'deposits',
         title: 'Депозиты',
-        requestData: depositInfo,
-        endpoint: 'interest_rates_deposit',
       },
     ],
+    []
+  );
+
+  const tableConfigs: Record<string, TableConfig> = useMemo(
+    () => ({
+      summary: {
+        requestData: summaryInfo,
+        endpoint: 'interest_rates_credit',
+        minYear: 2014,
+      },
+      territorial: {
+        requestData: territorialInfo,
+        endpoint: 'interest_rates_credit',
+        minYear: 2019,
+      },
+      deposits: {
+        requestData: depositInfo,
+        endpoint: 'interest_rates_deposit',
+        minYear: 2014,
+      },
+    }),
     []
   );
 
   const [selectedIds, setSelectedIds] = useState<string[]>(
     items.map((it) => it.id)
   );
-  const [globalFromYear, setGlobalFromYear] = useState<number | null>(null);
-  const [globalToYear, setGlobalToYear] = useState<number | null>(null);
+
+  const handleApply = (ids: string[]) => {
+    setSelectedIds(ids);
+  };
 
   return (
     <section className={styles.page}>
@@ -74,27 +100,28 @@ export const MainPage: React.FC = () => {
         <TableFilterPanel
           items={items}
           initialSelectedIds={selectedIds}
-          initialFromYear={items[0].requestData.from_year}
-          initialToYear={items[0].requestData.to_year}
-          onApply={({ selectedIds: ids, from_year, to_year }) => {
-            setSelectedIds(ids);
-            setGlobalFromYear(from_year);
-            setGlobalToYear(to_year);
-          }}
+          onApply={handleApply}
         />
       </div>
 
       <div className={styles.grid}>
-        {items.map((it) =>
-          selectedIds.includes(it.id) ? (
+        {items.map((it) => {
+          const isSelected = selectedIds.includes(it.id);
+          if (!isSelected) return null;
+
+          const config = tableConfigs[it.id];
+          if (!config) return null;
+
+          return (
             <article key={it.id} className={styles.card}>
               <StatisticTable
-                requestData={it.requestData}
-                endpoint={it.endpoint}
+                requestData={config.requestData}
+                endpoint={config.endpoint}
+                minYear={config.minYear}
               />
             </article>
-          ) : null
-        )}
+          );
+        })}
       </div>
     </section>
   );

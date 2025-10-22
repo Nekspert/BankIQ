@@ -4,6 +4,9 @@ import { getStructuredData } from './utils/getStructuredData';
 import styles from './styles.module.scss';
 import { StatisticChart } from '@/features/statistic-chart/StatisticChart';
 import type { GetStatisticParams } from '@/shared/api/hooks/statistic/types';
+import { DateRangeFilter } from '@/features/date-range-filter/DateRangeFilter';
+import { SkeletonBlock } from '@/shared/ui/loader/SkeletonBlock';
+import Loader from '@/shared/ui/loader/Loader';
 
 type Row = Record<string, number | null>;
 type TableData = Record<string, Row>;
@@ -13,6 +16,7 @@ interface Props {
   externalSelectedColumns?: string[] | null;
   onColumnsReady?: (cols: string[]) => void;
   endpoint: string;
+  minYear: number;
 }
 
 export const StatisticTable: FC<Props> = ({
@@ -20,8 +24,26 @@ export const StatisticTable: FC<Props> = ({
   externalSelectedColumns,
   onColumnsReady,
   endpoint,
+  minYear,
 }) => {
-  const { data: rawStatisticData } = useGetStatistic(requestData, endpoint);
+  const [dateRange, setDateRange] = useState({
+    from_year: requestData.from_year,
+    to_year: requestData.to_year,
+  });
+
+  const currentRequestData = useMemo(
+    () => ({
+      ...requestData,
+      from_year: dateRange.from_year,
+      to_year: dateRange.to_year,
+    }),
+    [requestData, dateRange]
+  );
+
+  const { data: rawStatisticData } = useGetStatistic(
+    currentRequestData,
+    endpoint
+  );
   const [data, setData] = useState<TableData | null>(null);
   const [internalSelected, setInternalSelected] = useState<string[]>([]);
 
@@ -59,7 +81,34 @@ export const StatisticTable: FC<Props> = ({
       ? externalSelectedColumns
       : internalSelected;
 
-  if (!data) return null;
+  const handleDateChange = (from: number, to: number) => {
+    setDateRange({ from_year: from, to_year: to });
+  };
+
+  if (!data) {
+    return (
+      <div className={styles['statistic-block']}>
+        <div className={styles['statistic-header']}>
+          <div>
+            <h2 className={styles['title']}>Загрузка...</h2>
+            <h3 className={styles['subtitle']}>Подготавливаем данные</h3>
+          </div>
+        </div>
+
+        <div className={styles['table-container']} style={{ marginTop: 12 }}>
+          <SkeletonBlock kind="table" />
+        </div>
+
+        <div style={{ marginTop: 12 }}>
+          <SkeletonBlock kind="chart" />
+        </div>
+
+        <div style={{ marginTop: 12 }}>
+          <Loader label="Загружаем данные" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles['statistic-block']}>
@@ -72,10 +121,17 @@ export const StatisticTable: FC<Props> = ({
               : ''}
           </h2>
           <h3 className={styles['subtitle']}>
-            За период: {requestData.from_year} - {requestData.to_year}
+            За период: {dateRange.from_year} - {dateRange.to_year}
           </h3>
         </div>
       </div>
+
+      <DateRangeFilter
+        initialFromYear={dateRange.from_year}
+        initialToYear={dateRange.to_year}
+        minYear={minYear}
+        onApply={handleDateChange}
+      />
 
       <div className={styles['table-container']}>
         {!activeColumns || activeColumns.length === 0 ? (

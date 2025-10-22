@@ -65,21 +65,38 @@ export const StatisticChart: React.FC<ChartProps> = ({
     );
   }
 
+  const renderRotatedTick = (props: any) => {
+    const { x, y, payload } = props;
+    const offset = 5;
+    return (
+      <text
+        x={x}
+        y={y + offset}
+        transform={`rotate(-60 ${x} ${y + offset})`}
+        textAnchor="end"
+        fontSize={10}
+      >
+        {payload.value}
+      </text>
+    );
+  };
+
   return (
     <div className={styles['chart-wrapper']}>
       <h4 className={styles['chart-title']}>Динамика показателей</h4>
       <ResponsiveContainer width="100%" height={420}>
         <LineChart
           data={chartData}
-          margin={{ top: 16, right: 24, left: 8, bottom: 8 }}
+          margin={{ top: 16, right: 24, left: 8, bottom: 90 }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="#e6eef6" />
           <XAxis
             dataKey="dt"
-            tick={{ fontSize: 12 }}
+            tick={renderRotatedTick}
             tickLine={false}
             axisLine={{ stroke: '#e6e9ef' }}
-            interval="preserveStartEnd"
+            interval={0}
+            height={1}
           />
           <YAxis
             tickFormatter={(v) => (typeof v === 'number' ? `${v}` : String(v))}
@@ -94,7 +111,7 @@ export const StatisticChart: React.FC<ChartProps> = ({
           <Legend
             verticalAlign="top"
             height={60}
-            wrapperStyle={{ paddingBottom: 16 }}
+            wrapperStyle={{ paddingBottom: 16, fontSize: 12 }}
           />
           {active.map((col, idx) => (
             <Line
