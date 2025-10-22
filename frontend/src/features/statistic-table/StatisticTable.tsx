@@ -4,7 +4,6 @@ import { getStructuredData } from './utils/getStructuredData';
 import styles from './styles.module.scss';
 import { StatisticChart } from '@/features/statistic-chart/StatisticChart';
 import type { GetStatisticParams } from '@/shared/api/hooks/statistic/types';
-import FilterPanel from '../filter-panel/FilterPanel';
 
 type Row = Record<string, number | null>;
 type TableData = Record<string, Row>;
@@ -13,14 +12,16 @@ interface Props {
   requestData: GetStatisticParams;
   externalSelectedColumns?: string[] | null;
   onColumnsReady?: (cols: string[]) => void;
+  endpoint: string;
 }
 
 export const StatisticTable: FC<Props> = ({
   requestData,
   externalSelectedColumns,
   onColumnsReady,
+  endpoint,
 }) => {
-  const { data: rawStatisticData } = useGetStatistic(requestData);
+  const { data: rawStatisticData } = useGetStatistic(requestData, endpoint);
   const [data, setData] = useState<TableData | null>(null);
   const [internalSelected, setInternalSelected] = useState<string[]>([]);
 

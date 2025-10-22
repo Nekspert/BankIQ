@@ -1,0 +1,306 @@
+// /* table-filter-panel.module.scss
+//    Стили для TableFilterPanel (класс names совпадают с компонентом)
+// */
+
+// :root {
+//   --tf-bg: #ffffff;
+//   --tf-border: #e6eef6;
+//   --tf-muted: #6b7280;
+//   --tf-text: #0f172a;
+//   --tf-accent: #2563eb;
+//   --tf-radius: 10px;
+//   --tf-shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
+//   --tf-gap: 12px;
+//   --tf-transition: 160ms cubic-bezier(0.2, 0.9, 0.2, 1);
+// }
+
+// .filter-panel {
+//   background: var(--tf-bg);
+//   border: 1px solid var(--tf-border);
+//   border-radius: var(--tf-radius);
+//   padding: 14px;
+//   box-shadow: var(--tf-shadow);
+//   width: 100%;
+//   box-sizing: border-box;
+//   display: flex;
+//   flex-direction: column;
+//   gap: var(--tf-gap);
+//   font-family:
+//     Inter,
+//     system-ui,
+//     -apple-system,
+//     'Segoe UI',
+//     Roboto,
+//     'Helvetica Neue',
+//     Arial;
+//   color: var(--tf-text);
+//   min-width: 260px;
+
+//   &__controls {
+//     display: flex;
+//     gap: 10px;
+//     align-items: center;
+//   }
+
+//   &__search {
+//     flex: 1;
+
+//     input[type='search'] {
+//       width: 100%;
+//       padding: 8px 10px;
+//       border-radius: 8px;
+//       border: 1px solid #eef6ff;
+//       background: #fbfdff;
+//       outline: none;
+//       font-size: 14px;
+//       color: var(--tf-text);
+//       transition:
+//         border-color var(--tf-transition),
+//         box-shadow var(--tf-transition);
+
+//       &::placeholder {
+//         color: var(--tf-muted);
+//         opacity: 0.9;
+//       }
+//       &:focus {
+//         border-color: var(--tf-accent);
+//         box-shadow: 0 6px 18px rgba(37, 99, 235, 0.08);
+//       }
+//     }
+//   }
+
+//   &__quick-actions {
+//     display: flex;
+//     gap: 6px;
+
+//     .filter-panel__btn {
+//       padding: 7px 10px;
+//       font-size: 13px;
+//       border-radius: 8px;
+//     }
+//   }
+
+//   /* range (from/to) */
+//   &__range {
+//     display: flex;
+//     gap: 8px;
+
+//     &-field {
+//       display: flex;
+//       flex-direction: column;
+//       gap: 6px;
+//       flex: 1;
+
+//       .filter-panel__range-label {
+//         font-size: 12px;
+//         color: var(--tf-muted);
+//       }
+
+//       input[type='number'] {
+//         padding: 8px 10px;
+//         border-radius: 8px;
+//         border: 1px solid #eef6ff;
+//         font-size: 14px;
+//         outline: none;
+//         transition:
+//           border-color var(--tf-transition),
+//           box-shadow var(--tf-transition);
+//         &:focus {
+//           border-color: var(--tf-accent);
+//           box-shadow: 0 6px 18px rgba(37, 99, 235, 0.06);
+//         }
+//       }
+//     }
+//   }
+
+//   &__list {
+//     max-height: 220px;
+//     overflow: auto;
+//     display: flex;
+//     flex-direction: column;
+//     gap: 6px;
+//     padding-right: 4px;
+
+//     scrollbar-width: thin;
+//     scrollbar-color: #cbd5e1 transparent;
+
+//     &::-webkit-scrollbar {
+//       width: 8px;
+//     }
+//     &::-webkit-scrollbar-track {
+//       background: transparent;
+//     }
+//     &::-webkit-scrollbar-thumb {
+//       background: #e2e8f0;
+//       border-radius: 6px;
+//     }
+//   }
+
+//   &__item {
+//     display: flex;
+//     align-items: center;
+//     gap: 10px;
+//     padding: 8px;
+//     border-radius: 8px;
+//     cursor: pointer;
+//     user-select: none;
+//     transition:
+//       background var(--tf-transition),
+//       transform var(--tf-transition);
+//     font-size: 14px;
+
+//     input[type='checkbox'] {
+//       width: 16px;
+//       height: 16px;
+//       margin: 0;
+//       accent-color: var(--tf-accent);
+//       flex: 0 0 auto;
+//     }
+
+//     span {
+//       color: var(--tf-text);
+//       word-break: break-word;
+//     }
+
+//     &:hover {
+//       background: #f8fbff;
+//       transform: translateY(-1px);
+//     }
+//     &:focus-within {
+//       outline: 2px solid rgba(37, 99, 235, 0.12);
+//       outline-offset: 2px;
+//     }
+//   }
+
+//   &__empty {
+//     padding: 12px;
+//     text-align: center;
+//     color: var(--tf-muted);
+//     font-size: 14px;
+//   }
+
+//   &__footer {
+//     display: flex;
+//     justify-content: flex-end;
+//     gap: 8px;
+//   }
+
+//   &__btn {
+//     padding: 8px 12px;
+//     border-radius: 8px;
+//     font-size: 14px;
+//     border: 1px solid transparent;
+//     cursor: pointer;
+//     transition:
+//       transform var(--tf-transition),
+//       box-shadow var(--tf-transition);
+//     min-width: 84px;
+
+//     &--primary {
+//       background: var(--tf-accent);
+//       color: #fff;
+//       box-shadow: 0 8px 20px rgba(37, 99, 235, 0.12);
+//       border: none;
+//       &:hover {
+//         transform: translateY(-1px);
+//       }
+//     }
+
+//     &--ghost {
+//       background: transparent;
+//       color: var(--tf-text);
+//       border: 1px solid #e6eef6;
+//       &:hover {
+//         background: #fafcff;
+//       }
+//     }
+//   }
+
+//   /* compact layout for narrow screens */
+//   @media (max-width: 640px) {
+//     padding: 12px;
+//     min-width: auto;
+
+//     &__controls {
+//       flex-direction: column;
+//       align-items: stretch;
+//     }
+//     &__range {
+//       flex-direction: column;
+//     }
+//     &__footer {
+//       justify-content: space-between;
+//     }
+//   }
+// }
+.filter-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #e6e9ef;
+  border-radius: 12px;
+  background-color: #f9fafe;
+  max-width: 400px;
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s, opacity 0.2s;
+
+    &.active {
+      background-color: #2563eb10;
+      font-weight: 500;
+    }
+
+    &.inactive {
+      opacity: 0.5;
+    }
+
+    input[type='checkbox'] {
+      cursor: pointer;
+    }
+
+    span {
+      flex: 1;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 12px;
+
+    button {
+      padding: 6px 16px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background-color 0.2s;
+    }
+
+    .apply-btn {
+      background-color: #2563eb;
+      color: #fff;
+
+      &:hover {
+        background-color: #1e40af;
+      }
+    }
+
+    .reset-btn {
+      background-color: #e6e9ef;
+      color: #111;
+
+      &:hover {
+        background-color: #cfd6e2;
+      }
+    }
+  }
+}

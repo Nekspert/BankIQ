@@ -6,10 +6,11 @@ import type {
 
 export const statisticApi = {
   getStatistic: async (
-    params: GetStatisticParams
+    params: GetStatisticParams,
+    endpoint: string
   ): Promise<StatisticResponse> => {
     const { data } = await axios.post(
-      '/api/parse/interest_rates_credit',
+      `/api/parse/${endpoint}`,
       params
     );
     return data;
