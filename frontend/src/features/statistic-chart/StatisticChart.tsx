@@ -10,25 +10,23 @@ import {
   Legend,
 } from 'recharts';
 import styles from './styles.module.scss';
-
-type Row = Record<string, number | null>;
-type TableData = Record<string, Row>;
+import type { TableData } from '../statistic-table/types';
 
 interface ChartProps {
   data: TableData;
-  columns: string[]; // all columns
-  selectedColumns?: string[]; // subset to display
+  columns: string[];
+  selectedColumns?: string[];
 }
 
 const COLORS = [
-  '#2563EB', // blue
-  '#EF4444', // red
-  '#10B981', // green
-  '#F59E0B', // amber
-  '#8B5CF6', // violet
-  '#06B6D4', // cyan
-  '#F97316', // orange
-  '#3B82F6', // light blue
+  '#2563EB',
+  '#EF4444',
+  '#10B981',
+  '#F59E0B',
+  '#8B5CF6',
+  '#06B6D4',
+  '#F97316',
+  '#3B82F6',
   '#0EA5A4',
   '#E11D48',
 ];

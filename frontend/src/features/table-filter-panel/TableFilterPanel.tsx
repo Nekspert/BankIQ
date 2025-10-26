@@ -1,62 +1,110 @@
-import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import classNames from 'classnames';
+import { useTableFilterPanel } from './hooks/useTableFilterPanel';
 import styles from './styles.module.scss';
+import type { TableFilterPanelProps } from './types';
+import type { FC } from 'react';
 
-export interface TableItem {
-  id: string;
-  title: string;
-}
-
-interface Props {
-  items: TableItem[];
-  initialSelectedIds?: string[];
-  onApply: (selectedIds: string[]) => void;
-}
-
-const TableFilterPanel: React.FC<Props> = ({
+export const TableFilterPanel: FC<TableFilterPanelProps> = ({
   items,
   initialSelectedIds = [],
   onApply,
 }) => {
-  const [selectedIds, setSelectedIds] = useState<string[]>(initialSelectedIds);
-
-  const toggleItem = (id: string) => {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-    );
-  };
-
-  const handleReset = () => {
-    setSelectedIds([]);
-  };
-
-  const handleApply = () => {
-    onApply(selectedIds);
-  };
+  const {
+    selectedItems,
+    availableItems,
+    addItem,
+    removeItem,
+    handleReset,
+    handleApply,
+  } = useTableFilterPanel({ items, initialSelectedIds, onApply });
 
   return (
     <div className={styles['filter-panel']}>
-      {items.map((item) => {
-        const isActive = selectedIds.includes(item.id);
-        return (
-          <label
-            key={item.id}
-            className={`${styles['filter-panel__item']} ${isActive ? styles.active : styles.inactive}`}
-          >
-            <input
-              type="checkbox"
-              checked={isActive}
-              onChange={() => toggleItem(item.id)}
-            />
-            <span>{item.title}</span>
-          </label>
-        );
-      })}
+      <div className={styles['filter-panel__section']}>
+        <h3 className={styles['filter-panel__title']}>Выбранное</h3>
+        <ul className={styles['filter-panel__list']}>
+          <AnimatePresence>
+            {selectedItems.length === 0 ? (
+              <motion.li
+                className={styles['filter-panel__empty']}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                Ничего не выбрано
+              </motion.li>
+            ) : (
+              selectedItems.map((item) => (
+                <motion.li
+                  key={item.id}
+                  className={styles['filter-panel__item']}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <span>{item.title}</span>
+                  <button
+                    className={styles['filter-panel__remove']}
+                    onClick={() => removeItem(item.id)}
+                    aria-label={`Удалить ${item.title}`}
+                  >
+                    ✕
+                  </button>
+                </motion.li>
+              ))
+            )}
+          </AnimatePresence>
+        </ul>
+      </div>
+
+      <div className={styles['filter-panel__section']}>
+        <h3 className={styles['filter-panel__title']}>Доступное</h3>
+        <ul className={styles['filter-panel__list']}>
+          <AnimatePresence>
+            {availableItems.map((item) => (
+              <motion.li
+                key={item.id}
+                className={classNames(styles['filter-panel__item'], {
+                  [styles['filter-panel__item--available']]: true,
+                })}
+                onClick={() => addItem(item.id)}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -40 }}
+                transition={{ duration: 0.2 }}
+              >
+                <span>{item.title}</span>
+              </motion.li>
+            ))}
+            {!availableItems.length && (
+              <motion.li
+                className={styles['filter-panel__empty']}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                Всё выбрано
+              </motion.li>
+            )}
+          </AnimatePresence>
+        </ul>
+      </div>
 
       <div className={styles['filter-panel__actions']}>
-        <button className={styles['reset-btn']} onClick={handleReset}>
+        <button
+          className={styles['filter-panel__reset-btn']}
+          onClick={handleReset}
+        >
           Сбросить
         </button>
-        <button className={styles['apply-btn']} onClick={handleApply}>
+        <button
+          className={styles['filter-panel__apply-btn']}
+          onClick={handleApply}
+        >
           Применить
         </button>
       </div>

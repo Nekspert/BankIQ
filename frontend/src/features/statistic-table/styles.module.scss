@@ -16,34 +16,13 @@
 }
 
 .table-container {
+  position: relative;
   overflow: auto;
   margin: 20px 0;
   background: #f7f8fa;
   border-radius: 8px;
-
-  webkit-overflow-scrolling: touch;
-
-  &::-webkit-scrollbar-button {
-    display: none;
-    width: 5px;
-    height: 5px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background-color: transparent;
-    border-radius: 5px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    margin: 20px 0;
-    background-color: #a7a7a7;
-    border-radius: 5px;
-  }
-
-  &::-webkit-scrollbar {
-    width: 5px;
-    height: 5px;
-  }
+  transition: max-height 0.3s ease-in-out;
+  @include custom-scrollbar(0px, 8px);
 
   .statistic-table {
     width: 100%;
@@ -65,7 +44,9 @@
         text-align: left;
         font-weight: 600;
         font-size: 13px;
+        min-width: 100px;
         color: #0f172a;
+
         border-bottom: 1px solid #e6e9ee;
         background: linear-gradient(180deg, #ffffff, #fbfcfd);
       }
@@ -105,4 +86,39 @@
       box-shadow: 2px 0 6px rgba(16, 24, 40, 0.03);
     }
   }
+}
+
+.gradient-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 80px;
+  z-index: 10;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), #ffffff);
+  pointer-events: none;
+}
+
+.toggle-button {
+  display: block;
+  margin: 10px auto 20px;
+  padding: 8px 16px;
+  background-color: #0f172a;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: #1e293b;
+  }
+}
+
+.no-selection {
+  padding: 20px;
+  text-align: center;
+  color: #475569;
 }

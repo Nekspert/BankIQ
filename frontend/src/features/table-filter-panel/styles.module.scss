@@ -1,42 +1,90 @@
 .filter-panel {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   padding: 16px;
   border: 1px solid #e6e9ef;
   border-radius: 12px;
   background-color: #f9fafe;
-  max-width: 400px;
+  width: 100%;
+
+  &__section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f172a;
+    margin: 0;
+  }
+
+  &__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 200px;
+    overflow-y: auto;
+    @include custom-scrollbar(5px, 0px);
+  }
 
   &__item {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 12px;
-    padding: 8px 12px;
+    justify-content: space-between;
+    padding: 6px 10px;
     border-radius: 8px;
     cursor: pointer;
+    background-color: #f0f7ff;
     transition:
-      background-color 0.2s,
-      opacity 0.2s;
+      background-color 0.2s ease,
+      transform 0.1s ease;
 
-    &.active {
-      background-color: #2563eb10;
-      font-weight: 500;
+    &:hover {
+      transform: translateY(-1px);
     }
 
-    &.inactive {
-      opacity: 0.5;
-    }
+    &--available {
+      opacity: 0.7;
 
-    input[type='checkbox'] {
-      cursor: pointer;
-      width: 16px;
-      height: 16px;
-      accent-color: #2563eb;
+      &:hover {
+        opacity: 1;
+      }
     }
 
     span {
-      flex: 1;
+      font-size: 13px;
+      color: #0f172a;
+      white-space: nowrap;
+    }
+  }
+
+  &__empty {
+    display: inline-flex;
+    padding: 6px 10px;
+    font-size: 13px;
+    color: #475569;
+    opacity: 0.7;
+  }
+
+  &__remove {
+    background: none;
+    border: none;
+    color: #dc2626;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 4px;
+    margin-left: 8px;
+    line-height: 1;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: #b91c1c;
     }
   }
 
@@ -52,7 +100,9 @@
       border: none;
       cursor: pointer;
       font-weight: 500;
-      transition: background-color 0.2s;
+      transition:
+        background-color 0.2s ease,
+        transform 0.1s ease;
       font-family: inherit;
       font-size: 14px;
 
@@ -65,22 +115,22 @@
       }
     }
   }
-}
 
-.apply-btn {
-  background-color: #2563eb;
-  color: #fff;
+  &__reset-btn {
+    background-color: #e6e9ef;
+    color: #111;
 
-  &:hover {
-    background-color: #1e40af;
+    &:hover {
+      background-color: #cfd6e2;
+    }
   }
-}
 
-.reset-btn {
-  background-color: #e6e9ef;
-  color: #111;
+  &__apply-btn {
+    background-color: #2563eb;
+    color: #fff;
 
-  &:hover {
-    background-color: #cfd6e2;
+    &:hover {
+      background-color: #1e40af;
+    }
   }
 }

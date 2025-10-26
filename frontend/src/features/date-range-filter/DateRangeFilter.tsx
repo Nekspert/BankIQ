@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { useDateRangeFilter } from './hooks/useDateRangeFilter';
 import styles from './styles.module.scss';
+import CustomSelect from '@/shared/ui/custom-select/CustomSelect';
 
 interface Props {
   initialFromYear: number;
@@ -13,92 +15,57 @@ export const DateRangeFilter: React.FC<Props> = ({
   initialFromYear,
   initialToYear,
   minYear,
-  maxYear = new Date().getFullYear(),
+  maxYear,
   onApply,
 }) => {
-  const [fromYear, setFromYear] = useState<string>(String(initialFromYear));
-  const [toYear, setToYear] = useState<string>(String(initialToYear));
-  const [error, setError] = useState<string>('');
-
-  useEffect(() => {
-    setFromYear(String(initialFromYear));
-    setToYear(String(initialToYear));
-  }, [initialFromYear, initialToYear]);
-
-  const validateAndApply = () => {
-    const from = Number(fromYear);
-    const to = Number(toYear);
-
-    // Проверка на валидность
-    if (!fromYear || !toYear) {
-      setError('Заполните оба поля');
-      return;
-    }
-
-    if (isNaN(from) || isNaN(to)) {
-      setError('Введите корректные годы');
-      return;
-    }
-
-    if (from < minYear) {
-      setError(`Минимальный год: ${minYear}`);
-      return;
-    }
-
-    if (to > maxYear) {
-      setError(`Максимальный год: ${maxYear}`);
-      return;
-    }
-
-    if (from > to) {
-      setError('Начальный год не может быть больше конечного');
-      return;
-    }
-
-    setError('');
-    onApply(from, to);
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      validateAndApply();
-    }
-  };
+  const {
+    fromYear,
+    setFromYear,
+    toYear,
+    setToYear,
+    error,
+    availableFromYears,
+    availableToYears,
+    validateAndApply,
+    handleKeyPress,
+  } = useDateRangeFilter({
+    initialFromYear,
+    initialToYear,
+    minYear,
+    maxYear,
+    onApply,
+  });
 
   return (
     <div className={styles['date-filter']}>
       <div className={styles['date-filter__inputs']}>
-        <label className={styles['date-filter__field']}>
+        <div className={styles['date-filter__field']}>
           <span className={styles['date-filter__label']}>
             От (мин. {minYear})
           </span>
-          <input
-            type="number"
-            min={minYear}
-            max={maxYear}
+          <CustomSelect
             value={fromYear}
-            onChange={(e) => setFromYear(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder={String(minYear)}
-            className={styles['date-filter__input']}
+            onChange={setFromYear}
+            options={availableFromYears}
+            placeholder="Выберите год"
+            className={styles['date-filter__select']}
+            onKeyDown={handleKeyPress}
           />
-        </label>
+        </div>
 
-        <label className={styles['date-filter__field']}>
+        <div className={styles['date-filter__field']}>
           <span className={styles['date-filter__label']}>
             До (макс. {maxYear})
           </span>
-          <input
-            type="number"
-            min={minYear}
-            max={maxYear}
+          <CustomSelect
             value={toYear}
-            onChange={(e) => setToYear(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder={String(maxYear)}
-            className={styles['date-filter__input']}
+            onChange={setToYear}
+            options={availableToYears}
+            placeholder="Выберите год"
+            className={styles['date-filter__select']}
+            onKeyDown={handleKeyPress}
           />
-        </label>
+        </div>
 
         <button
           type="button"

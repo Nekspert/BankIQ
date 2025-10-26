@@ -1,35 +1,30 @@
-import { useEffect, useMemo, useState, type FC } from 'react';
+import { useMemo, type FC } from 'react';
 import { useGetStatistic } from '@/shared/api/hooks/statistic/useGetStatistic';
-import { getStructuredData } from './utils/getStructuredData';
 import styles from './styles.module.scss';
 import { StatisticChart } from '@/features/statistic-chart/StatisticChart';
-import type { GetStatisticParams } from '@/shared/api/hooks/statistic/types';
 import { DateRangeFilter } from '@/features/date-range-filter/DateRangeFilter';
-import { SkeletonBlock } from '@/shared/ui/loader/SkeletonBlock';
-import Loader from '@/shared/ui/loader/Loader';
+import { TableLoader } from '../table-loader/TableLoader';
+import type { StatisticTableProps } from './types';
 
-type Row = Record<string, number | null>;
-type TableData = Record<string, Row>;
+import { useTableData } from './hooks/useTableData';
+import { useTableColumns } from './hooks/useTableColumns';
+import { useExpandableTable } from './hooks/useExpandableTable';
+import { useRef } from 'react';
+import { useDateRange } from './hooks/useDateRange';
 
-interface Props {
-  requestData: GetStatisticParams;
-  externalSelectedColumns?: string[] | null;
-  onColumnsReady?: (cols: string[]) => void;
-  endpoint: string;
-  minYear: number;
-}
-
-export const StatisticTable: FC<Props> = ({
+export const StatisticTable: FC<StatisticTableProps> = ({
   requestData,
   externalSelectedColumns,
   onColumnsReady,
   endpoint,
   minYear,
 }) => {
-  const [dateRange, setDateRange] = useState({
-    from_year: requestData.from_year,
-    to_year: requestData.to_year,
-  });
+  const tableRef = useRef<HTMLTableElement>(null);
+
+  const { dateRange, handleDateChange } = useDateRange(
+    requestData.from_year,
+    requestData.to_year
+  );
 
   const currentRequestData = useMemo(
     () => ({
@@ -44,86 +39,36 @@ export const StatisticTable: FC<Props> = ({
     currentRequestData,
     endpoint
   );
-  const [data, setData] = useState<TableData | null>(null);
-  const [internalSelected, setInternalSelected] = useState<string[]>([]);
+  const data = useTableData(rawStatisticData);
 
-  useEffect(() => {
-    if (!rawStatisticData) return;
-    setData(getStructuredData(rawStatisticData));
-  }, [rawStatisticData]);
+  const { columns, activeColumns } = useTableColumns(
+    data,
+    externalSelectedColumns,
+    onColumnsReady
+  );
 
-  const columns = useMemo(() => {
-    if (!data) return [] as string[];
-    const rows = Object.values(data);
-    const colsSet = new Set<string>();
-    if (rows.length > 0) Object.keys(rows[0]).forEach((k) => colsSet.add(k));
-    rows.slice(1).forEach((r) => Object.keys(r).forEach((k) => colsSet.add(k)));
-    return Array.from(colsSet);
-  }, [data]);
+  const {
+    isExpanded,
+    setIsExpanded,
+    containerStyle,
+    displayedRows,
+    showToggle,
+  } = useExpandableTable(data, tableRef);
 
-  useEffect(() => {
-    if (columns.length === 0) return;
-    onColumnsReady?.(columns);
-    setInternalSelected((prev) => {
-      if (prev.length === 0) return columns;
-      return prev.filter((c) => columns.includes(c));
-    });
-  }, [columns.join('|')]);
-
-  useEffect(() => {
-    if (externalSelectedColumns && externalSelectedColumns.length > 0) return;
-    if (columns.length > 0 && internalSelected.length === 0)
-      setInternalSelected(columns);
-  }, [externalSelectedColumns, columns, internalSelected.length]);
-
-  const activeColumns =
-    externalSelectedColumns && externalSelectedColumns.length >= 0
-      ? externalSelectedColumns
-      : internalSelected;
-
-  const handleDateChange = (from: number, to: number) => {
-    setDateRange({ from_year: from, to_year: to });
-  };
-
-  if (!data) {
-    return (
-      <div className={styles['statistic-block']}>
-        <div className={styles['statistic-header']}>
-          <div>
-            <h2 className={styles['title']}>Загрузка...</h2>
-            <h3 className={styles['subtitle']}>Подготавливаем данные</h3>
-          </div>
-        </div>
-
-        <div className={styles['table-container']} style={{ marginTop: 12 }}>
-          <SkeletonBlock kind="table" />
-        </div>
-
-        <div style={{ marginTop: 12 }}>
-          <SkeletonBlock kind="chart" />
-        </div>
-
-        <div style={{ marginTop: 12 }}>
-          <Loader label="Загружаем данные" />
-        </div>
-      </div>
-    );
-  }
+  if (!data) return <TableLoader />;
 
   return (
-    <div className={styles['statistic-block']}>
-      <div className={styles['statistic-header']}>
-        <div>
-          <h2 className={styles['title']}>
-            {rawStatisticData?.SType?.[0]?.dsName ?? ''}
-            {rawStatisticData?.SType?.[0]?.PublName
-              ? `. ${rawStatisticData.SType[0].PublName}`
-              : ''}
-          </h2>
-          <h3 className={styles['subtitle']}>
-            За период: {dateRange.from_year} - {dateRange.to_year}
-          </h3>
-        </div>
+    <div>
+      <div>
+        <h2 className={styles.title}>
+          {rawStatisticData?.SType?.[0]?.dsName ?? ''}
+          {rawStatisticData?.SType?.[0]?.PublName
+            ? `. ${rawStatisticData.SType[0].PublName}`
+            : ''}
+        </h2>
+        <h3 className={styles.subtitle}>
+          За период: {dateRange.from_year} - {dateRange.to_year}
+        </h3>
       </div>
 
       <DateRangeFilter
@@ -133,13 +78,13 @@ export const StatisticTable: FC<Props> = ({
         onApply={handleDateChange}
       />
 
-      <div className={styles['table-container']}>
+      <div className={styles['table-container']} style={containerStyle}>
         {!activeColumns || activeColumns.length === 0 ? (
           <div className={styles['no-selection']}>
             Нет выбранных показателей для отображения.
           </div>
         ) : (
-          <table className={styles['statistic-table']}>
+          <table ref={tableRef} className={styles['statistic-table']}>
             <thead>
               <tr>
                 <th className={styles['sticky-col']}>Дата</th>
@@ -149,7 +94,7 @@ export const StatisticTable: FC<Props> = ({
               </tr>
             </thead>
             <tbody>
-              {Object.entries(data).map(([dt, row]) => (
+              {displayedRows.map(([dt, row]) => (
                 <tr key={dt}>
                   <td className={styles['sticky-col']}>{dt}</td>
                   {activeColumns.map((col) => {
@@ -163,12 +108,24 @@ export const StatisticTable: FC<Props> = ({
             </tbody>
           </table>
         )}
+        {!isExpanded && showToggle && (
+          <div className={styles['gradient-overlay']} />
+        )}
       </div>
+
+      {showToggle && (
+        <button
+          className={styles['toggle-button']}
+          onClick={() => setIsExpanded((prev) => !prev)}
+        >
+          {isExpanded ? 'Свернуть' : 'Развернуть'}
+        </button>
+      )}
 
       <StatisticChart
         data={data}
         columns={columns}
-        selectedColumns={activeColumns ?? []}
+        selectedColumns={activeColumns}
       />
     </div>
   );
