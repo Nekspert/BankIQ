@@ -2,13 +2,13 @@
   position: relative;
   width: 100%;
   font-size: 14px;
-  color: #0f172a;
+  color: $text-primary;
 
   &__trigger {
     padding: 8px 12px;
-    border: 1px solid #e6eef6;
+    border: 1px solid $text-white-primary;
     border-radius: 8px;
-    background: #ffffff;
+    background: $background-secondary;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -18,21 +18,21 @@
       box-shadow 0.2s ease;
 
     &:focus {
-      border-color: #2563eb;
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      border-color: $background-button-blue-primary;
+      box-shadow: 0 0 0 3px $background-primary-shadow;
       outline: none;
     }
 
     &:hover:not(:focus) {
-      border-color: #cbd5e1;
+      border-color: $text-white-primary;
     }
   }
 
   &__label {
-    color: #0f172a;
+    color: $text-primary;
 
     &--placeholder {
-      color: #94a3b8;
+      color: $text-white-secondary;
     }
   }
 
@@ -55,10 +55,10 @@
     left: 0;
     right: 0;
     margin-top: 4px;
-    background: #ffffff;
-    border: 1px solid #e6eef6;
+    background: $background-secondary;
+    border: 1px solid $text-white-primary;
     border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px $background-primary-shadow;
     max-height: 200px;
     overflow-y: auto;
     z-index: 10;
@@ -74,12 +74,12 @@
 
     &:hover,
     &:focus {
-      background-color: #f0f7ff;
+      background-color: $background-primary-hover;
       outline: none;
     }
 
     &--selected {
-      background-color: #e6f0ff;
+      background-color: $text-white-primary;
       font-weight: 500;
     }
   }

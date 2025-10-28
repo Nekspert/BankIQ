@@ -3,7 +3,7 @@
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  color: #475569;
+  color: $text-muted;
   font-size: 13px;
 }
 
@@ -18,16 +18,21 @@
 }
 
 .path {
-  stroke: #cbd5e1;
+  stroke: $text-white-primary;
   stroke-linecap: round;
 }
 
 .label {
-  color: #64748b;
+  color: $text-white-secondary;
 }
 
 .skeleton {
-  background: linear-gradient(90deg, #f1f5f9 0%, #eef2f7 50%, #f1f5f9 100%);
+  background: linear-gradient(
+    90deg,
+    $background-primary 0%,
+    $text-white-primary 50%,
+    $background-primary 100%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.2s linear infinite;
   border-radius: 8px;

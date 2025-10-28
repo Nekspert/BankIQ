@@ -18,7 +18,7 @@
 .title {
   font-size: 2rem;
   font-weight: 700;
-  color: #0f172a;
+  color: $text-primary;
   letter-spacing: -0.02em;
   line-height: 1.2;
   margin: 0;
@@ -27,7 +27,7 @@
 .lead {
   font-size: 1rem;
   font-weight: 400;
-  color: #64748b;
+  color: $text-white-secondary;
   line-height: 1.5;
   margin: 0;
 }
@@ -40,15 +40,15 @@
 }
 
 .card {
-  background: #ffffff;
-  border: 1px solid #e6eef6;
+  background: $background-secondary;
+  border: 1px solid $text-white-primary;
   border-radius: 12px;
   padding: 24px;
-  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.04);
+  box-shadow: 0 1px 3px $background-primary-shadow;
   transition: box-shadow 0.2s ease;
 
   &:hover {
-    box-shadow: 0 4px 12px rgba(16, 24, 40, 0.08);
+    box-shadow: 0 4px 12px $background-primary-shadow-hover;
   }
 }
 

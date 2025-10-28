@@ -1,15 +1,19 @@
 .chart-wrapper {
   margin-top: 28px;
   padding: 18px;
-  background: linear-gradient(180deg, #ffffff, #fbfdff);
-  border: 1px solid #eef3fb;
+  background: linear-gradient(
+    180deg,
+    $background-secondary,
+    $background-primary
+  );
+  border: 1px solid $text-white-primary;
   border-radius: 12px;
   box-shadow: 0 1px 4px rgba(16, 24, 40, 0.03);
 }
 
 .chart-title {
   margin: 0 0 8px 4px;
-  font-size: 1rem;
+  font-size: 16px;
   font-weight: 600;
-  color: #0f172a;
+  color: $text-primary;
 }

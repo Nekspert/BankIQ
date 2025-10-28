@@ -3,9 +3,9 @@
   flex-direction: column;
   gap: 16px;
   padding: 16px;
-  border: 1px solid #e6e9ef;
+  border: 1px solid $text-white-primary;
   border-radius: 12px;
-  background-color: #f9fafe;
+  background-color: $background-primary;
   width: 100%;
 
   &__section {
@@ -17,7 +17,7 @@
   &__title {
     font-size: 14px;
     font-weight: 600;
-    color: #0f172a;
+    color: $text-primary;
     margin: 0;
   }
 
@@ -40,7 +40,7 @@
     padding: 6px 10px;
     border-radius: 8px;
     cursor: pointer;
-    background-color: #f0f7ff;
+    background-color: $background-primary-hover;
     transition:
       background-color 0.2s ease,
       transform 0.1s ease;
@@ -59,7 +59,7 @@
 
     span {
       font-size: 13px;
-      color: #0f172a;
+      color: $text-primary;
       white-space: nowrap;
     }
   }
@@ -68,14 +68,14 @@
     display: inline-flex;
     padding: 6px 10px;
     font-size: 13px;
-    color: #475569;
+    color: $text-muted;
     opacity: 0.7;
   }
 
   &__remove {
     background: none;
     border: none;
-    color: #dc2626;
+    color: $error;
     font-size: 12px;
     cursor: pointer;
     padding: 4px;
@@ -84,7 +84,7 @@
     transition: color 0.2s ease;
 
     &:hover {
-      color: #b91c1c;
+      color: $error-hover;
     }
   }
 
@@ -117,20 +117,20 @@
   }
 
   &__reset-btn {
-    background-color: #e6e9ef;
-    color: #111;
+    background-color: $text-white-primary;
+    color: $text-primary;
 
     &:hover {
-      background-color: #cfd6e2;
+      background-color: $text-white-primary;
     }
   }
 
   &__apply-btn {
-    background-color: #2563eb;
-    color: #fff;
+    background-color: $background-button-blue-primary;
+    color: $background-secondary;
 
     &:hover {
-      background-color: #1e40af;
+      background-color: $background-button-blue-primary-hover;
     }
   }
 }
