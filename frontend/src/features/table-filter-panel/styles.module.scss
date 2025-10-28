@@ -8,6 +8,11 @@
   background-color: $background-primary;
   width: 100%;
 
+  &__title--main{
+    font-size: 22px;
+    color: $text-primary;
+  }
+
   &__section {
     display: flex;
     flex-direction: column;

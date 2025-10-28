@@ -21,6 +21,7 @@ export const TableFilterPanel: FC<TableFilterPanelProps> = ({
 
   return (
     <div className={styles['filter-panel']}>
+      <h2 className={styles['filter-panel__title--main']}>Настройте таблицы, которые хотите видеть</h2>
       <div className={styles['filter-panel__section']}>
         <h3 className={styles['filter-panel__title']}>Выбранное</h3>
         <ul className={styles['filter-panel__list']}>
