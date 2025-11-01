@@ -8,7 +8,23 @@ from requests.exceptions import RequestException
 logger = logging.getLogger(__name__)
 
 
-class CBRParser:
+class CbrAPIParser:
+    """
+    Парсер данных Центробанка (dataservice).
+
+    Стиль ответов:
+      - В случае успешного выполнения возвращается словарь с ключами:
+          {'publication_ids': [...]}
+          {'dataset_ids': [...]}
+          {'measure_ids': [...]}
+          {'years': [from_year, to_year]}
+          или — при парсинге данных — полный JSON-объект, полученный от API (обычно с ключом 'RawData').
+      - В случае ошибки внешнего API возвращается:
+          {'message': 'Ошибка внешнего API: <текст ошибки>'}
+      - В случае неожиданных внутренних исключений возвращается:
+          {'message': 'Внутренняя ошибка: <текст ошибки>'}
+    """
+
     BASE_URL = 'http://www.cbr.ru/dataservice'
     REQUEST_TIMEOUT = 5
 

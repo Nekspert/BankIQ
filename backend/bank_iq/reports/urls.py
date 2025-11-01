@@ -4,9 +4,15 @@ from .views import CheckValidDataAPIView, InterestRatesCreditAPIView, InterestRa
 
 
 urlpatterns = [
-    path("parse/check_params", CheckValidDataAPIView.as_view(), name="CheckValidDataAPIView"),
-    path("parse/interest_rates_credit", InterestRatesCreditAPIView.as_view(),
-         name="InterestRatesCreditAPIView"),
-    path("parse/interest_rates_deposit", InterestRatesDepositAPIView.as_view(),
-         name="InterestRatesDepositAPIView"),
+    path("reports/parameters/check/",
+         CheckValidDataAPIView.as_view(),
+         name="reports.parameters.check"),
+
+    path("reports/interest-rates/credit/",
+         InterestRatesCreditAPIView.as_view(),
+         name="reports.interest_rates.credit"),
+
+    path("reports/interest-rates/deposit/",
+         InterestRatesDepositAPIView.as_view(),
+         name="reports.interest_rates.deposit"),
 ]

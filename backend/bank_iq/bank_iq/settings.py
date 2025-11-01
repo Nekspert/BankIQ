@@ -27,7 +27,8 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'test-secret-key')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DJANGO_DEBUG', True)
 
-ALLOWED_HOSTS = [h.strip() for h in os.getenv('DJANGO_ALLOWED_HOSTS', default='127.0.0.1,localhost,0.0.0.0').split(',')
+ALLOWED_HOSTS = [h.strip() for h in
+                 os.getenv('DJANGO_ALLOWED_HOSTS', default='127.0.0.1,localhost,0.0.0.0,backend').split(',')
                  if h.strip()]
 
 # Application definition
@@ -44,6 +45,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
 
     'reports.apps.ReportsConfig',
+    'indicators.apps.IndicatorsConfig',
 ]
 
 MIDDLEWARE = [
