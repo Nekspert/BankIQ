@@ -25,7 +25,7 @@ class CbrAllBanksParser:
       - В успешном случае возвращаем {'banks': [{..bank..}, ... ]}
     """
     WSDL_URL = 'https://www.cbr.ru/CreditInfoWebServ/CreditOrgInfo.asmx?WSDL'
-    REQUEST_TIMEOUT = 30
+    REQUEST_TIMEOUT = 5
     _client: Optional[zeep.Client] = None
 
     @classmethod
@@ -118,5 +118,5 @@ class CbrAllBanksParser:
             logger.error(f'Ошибка при запросе к внешнему API ЦБ РФ: {e}')
             return {'message': f'Ошибка внешнего API: {str(e)}'}
         except Exception as e:
-            logger.exception('Unexpected error in get_all_banks')
+            logger.exception(f'Unexpected error in get_all_banks: {e}')
             return {'message': f'Внутренняя ошибка: {str(e)}'}
