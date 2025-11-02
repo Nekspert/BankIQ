@@ -9,10 +9,7 @@ export const statisticApi = {
     params: GetStatisticParams,
     endpoint: string
   ): Promise<StatisticResponse> => {
-    const { data } = await axios.post(
-      `/api/parse/${endpoint}`,
-      params
-    );
+    const { data } = await axios.post(`/api/reports/${endpoint}/`, params);
     return data;
   },
 };

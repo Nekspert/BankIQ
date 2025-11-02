@@ -70,27 +70,27 @@ export const depositInfo2: GetStatisticParams = {
 export const tableConfigs: Record<string, TableConfig> = {
   summary: {
     requestData: summaryInfo,
-    endpoint: 'interest_rates_credit',
+    endpoint: 'interest-rates/credit',
     minYear: 2014,
   },
   territorial: {
     requestData: territorialInfo,
-    endpoint: 'interest_rates_credit',
+    endpoint: 'interest-rates/credit',
     minYear: 2019,
   },
   depositsRegional: {
     requestData: someInfo,
-    endpoint: 'interest_rates_credit',
+    endpoint: 'interest-rates/credit',
     minYear: 2019,
   },
   depositsSummary: {
     requestData: depositInfo,
-    endpoint: 'interest_rates_deposit',
+    endpoint: 'interest-rates/deposit',
     minYear: 2014,
   },
   depositsTerritorial: {
     requestData: depositInfo2,
-    endpoint: 'interest_rates_deposit',
+    endpoint: 'interest-rates/deposit',
     minYear: 2019,
   },
 };
