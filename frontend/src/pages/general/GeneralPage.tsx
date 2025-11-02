@@ -8,6 +8,7 @@ import classNames from 'classnames';
 import MenuIcon from './icons/menu-icon.svg';
 import { useScrollamaObserver } from './hooks/useScrollamaObserver';
 import { useActiveGraph } from './hooks/useActiveGraph';
+import Title from '@/shared/ui/title/Title';
 
 export const GeneralPage: FC = () => {
   const [selectedIds, setSelectedIds] = useState<string[]>(
@@ -72,9 +73,7 @@ export const GeneralPage: FC = () => {
         })}
       >
         <div className={styles.header}>
-          <h1 className={styles.title}>
-            Общая статистика, предоставляемая ЦБ РФ
-          </h1>
+          <Title level={1} size='xlarge'>Общая статистика, предоставляемая ЦБ РФ</Title>
         </div>
 
         <div style={{ marginBottom: 20 }}>
@@ -95,7 +94,7 @@ export const GeneralPage: FC = () => {
               <article
                 id={it.id}
                 key={it.id}
-                className={`${styles.card} scrolly-step`}
+                className={classNames(styles.card, 'scrolly-step')}
               >
                 <StatisticTable
                   requestData={config.requestData}

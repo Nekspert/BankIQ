@@ -1,0 +1,54 @@
+.searchWrapper {
+  margin-bottom: 12px;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.bankList {
+  max-height: 300px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  @include custom-scrollbar(6px, 0px);
+}
+
+.sectionTitle {
+  font-weight: 600;
+  margin: 8px 0;
+  font-size: 14px;
+}
+
+.bankItem {
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background-color: #f0f0f0;
+  }
+
+  &.selected {
+    background-color: #d0e6ff;
+  }
+}
+
+.noResults {
+  padding: 12px;
+  color: #888;
+  text-align: center;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}

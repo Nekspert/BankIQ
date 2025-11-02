@@ -32,4 +32,15 @@
       background: transparent;
     }
   }
+
+  &--bordered {
+    background: $background-secondary;
+    border: 1px solid $text-white-primary;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px $background-primary-shadow;
+    transition: box-shadow 0.2s ease;
+    &:hover {
+      box-shadow: 0 4px 12px $background-primary-shadow-hover;
+    }
+  }
 }
