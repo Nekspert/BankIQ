@@ -1,52 +1,113 @@
-import { useState, type FC } from 'react';
+import { useCallback, useEffect, useState, type FC } from 'react';
 import { StatisticTable } from '@/features/statistic-table/StatisticTable';
 import styles from './styles.module.scss';
 import TableFilterPanel from '@/features/table-filter-panel/TableFilterPanel';
 import { tableArray, tableConfigs } from './constants';
+import { SideMenu } from '@/features/side-menu/SideMenu';
+import classNames from 'classnames';
+import MenuIcon from './icons/menu-icon.svg';
+import { useScrollamaObserver } from './hooks/useScrollamaObserver';
+import { useActiveGraph } from './hooks/useActiveGraph';
 
 export const GeneralPage: FC = () => {
   const [selectedIds, setSelectedIds] = useState<string[]>(
     tableArray.map((it) => it.id)
   );
+  const [sideMenuIsOpen, setSideMenuIsOpen] = useState(false);
+  const { activeId: activeGraphId, setActiveGraphOptimized } = useActiveGraph();
 
-  const handleApply = (ids: string[]) => {
-    setSelectedIds(ids);
-  };
+  useScrollamaObserver({
+    stepSelector: '.scrolly-step',
+    onStepEnter: (id) => setActiveGraphOptimized(id),
+    containerId: 'root',
+  });
+
+  useEffect(() => {
+    if (!activeGraphId && selectedIds.length > 0) {
+      setActiveGraphOptimized(selectedIds[0]);
+    } else if (activeGraphId && !selectedIds.includes(activeGraphId)) {
+      setActiveGraphOptimized(selectedIds[0] || '');
+    }
+  }, [selectedIds, activeGraphId, setActiveGraphOptimized]);
+
+  const handleMenuLinkClick = useCallback(
+    (id: string) => {
+      setActiveGraphOptimized(id);
+      document.getElementById(id)?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+      setSideMenuIsOpen(false);
+    },
+    [setActiveGraphOptimized]
+  );
+
+  const handleApply = useCallback((ids: string[]) => setSelectedIds(ids), []);
+  const handleChangeSideMenu = useCallback(
+    () => setSideMenuIsOpen((prev) => !prev),
+    []
+  );
 
   return (
-    <section className={styles.page}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>Общая статистика, предоставляемая ЦБ РФ</h1>
-      </header>
+    <div className={styles['page__wrapper']}>
+      <SideMenu
+        handleClose={handleChangeSideMenu}
+        tableList={tableArray}
+        isOpen={sideMenuIsOpen}
+        activeId={activeGraphId}
+        onLinkClick={handleMenuLinkClick}
+      />
 
-      <div style={{ marginBottom: 20 }}>
-        <TableFilterPanel
-          items={tableArray}
-          initialSelectedIds={selectedIds}
-          onApply={handleApply}
-        />
-      </div>
+      <button
+        className={styles['page__menu-icon']}
+        onClick={handleChangeSideMenu}
+      >
+        <img src={MenuIcon} alt="open" />
+      </button>
 
-      <div className={styles.grid}>
-        {tableArray.map((it) => {
-          const isSelected = selectedIds.includes(it.id);
-          if (!isSelected) return null;
-
-          const config = tableConfigs[it.id];
-          if (!config) return null;
-
-          return (
-            <article key={it.id} className={styles.card}>
-              <StatisticTable
-                requestData={config.requestData}
-                endpoint={config.endpoint}
-                minYear={config.minYear}
-              />
-            </article>
-          );
+      <section
+        id="general-page-section"
+        className={classNames(styles.page, {
+          [styles['page--wide']]: !sideMenuIsOpen,
         })}
-      </div>
-    </section>
+      >
+        <div className={styles.header}>
+          <h1 className={styles.title}>
+            Общая статистика, предоставляемая ЦБ РФ
+          </h1>
+        </div>
+
+        <div style={{ marginBottom: 20 }}>
+          <TableFilterPanel
+            items={tableArray}
+            initialSelectedIds={selectedIds}
+            onApply={handleApply}
+          />
+        </div>
+
+        <div className={styles.grid}>
+          {tableArray.map((it) => {
+            if (!selectedIds.includes(it.id)) return null;
+            const config = tableConfigs[it.id];
+            if (!config) return null;
+
+            return (
+              <article
+                id={it.id}
+                key={it.id}
+                className={`${styles.card} scrolly-step`}
+              >
+                <StatisticTable
+                  requestData={config.requestData}
+                  endpoint={config.endpoint}
+                  minYear={config.minYear}
+                />
+              </article>
+            );
+          })}
+        </div>
+      </section>
+    </div>
   );
 };
 

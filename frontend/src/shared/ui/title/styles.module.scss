@@ -1,0 +1,39 @@
+.title {
+  margin: 0;
+  font-family: $font-family-base;
+  font-weight: 600;
+  color: $text-primary;
+  line-height: 1.2;
+  
+  &--align {
+    &-left {
+      text-align: left;
+    }
+    
+    &-center {
+      text-align: center;
+    }
+    
+    &-right {
+      text-align: right;
+    }
+  }
+  
+  &--small {
+    font-size: 14px;
+  }
+  
+  &--medium {
+    font-size: 18px;
+  }
+  
+  &--large {
+    font-size: 24px;
+  }
+  
+  &--xlarge {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+}

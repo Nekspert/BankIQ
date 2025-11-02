@@ -1,17 +1,13 @@
-import React from 'react';
+import { type FC } from 'react';
 import { useDateRangeFilter } from './hooks/useDateRangeFilter';
 import styles from './styles.module.scss';
 import CustomSelect from '@/shared/ui/custom-select/CustomSelect';
+import { Section } from '@/shared/ui/section/Section';
+import { Button } from '@/shared/ui/button/Button';
+import { Title } from '@/shared/ui/title/Title';
+import type { DateRangeFilterProps } from './types';
 
-interface Props {
-  initialFromYear: number;
-  initialToYear: number;
-  minYear: number;
-  maxYear?: number;
-  onApply: (fromYear: number, toYear: number) => void;
-}
-
-export const DateRangeFilter: React.FC<Props> = ({
+export const DateRangeFilter: FC<DateRangeFilterProps> = ({
   initialFromYear,
   initialToYear,
   minYear,
@@ -37,7 +33,15 @@ export const DateRangeFilter: React.FC<Props> = ({
   });
 
   return (
-    <div className={styles['date-filter']}>
+    <Section
+      padding="medium"
+      background="secondary"
+      className={styles['date-filter']}
+    >
+      <Title level={3} size="small" className={styles['date-filter__title']}>
+        Фильтр по дате
+      </Title>
+
       <div className={styles['date-filter__inputs']}>
         <div className={styles['date-filter__field']}>
           <span className={styles['date-filter__label']}>
@@ -67,17 +71,22 @@ export const DateRangeFilter: React.FC<Props> = ({
           />
         </div>
 
-        <button
-          type="button"
+        <Button
+          variant="primary"
+          size="small"
           onClick={validateAndApply}
           className={styles['date-filter__btn']}
         >
           Применить
-        </button>
+        </Button>
       </div>
 
-      {error && <div className={styles['date-filter__error']}>{error}</div>}
-    </div>
+      {error && (
+        <Section padding="small" background="transparent">
+          <div className={styles['date-filter__error']}>{error}</div>
+        </Section>
+      )}
+    </Section>
   );
 };
 

@@ -1,3 +1,9 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
 .title {
   font-size: 1.5rem;
   font-weight: 600;
@@ -11,14 +17,12 @@
   font-size: 1rem;
   font-weight: 500;
   color: $text-muted;
-  margin-bottom: 20px;
   line-height: 1.4;
 }
 
 .table-container {
   position: relative;
   overflow: auto;
-  margin: 20px 0;
   background: $background-primary;
   border-radius: 8px;
   transition: max-height 0.3s ease-in-out;
@@ -28,7 +32,7 @@
     width: 100%;
     min-width: 900px;
     border-collapse: collapse;
-    font-family: Inter, Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-family: $font-family-base;
     background: $background-secondary;
     border: 1px solid $text-white-primary;
     color: $background-button-secondary;
@@ -46,7 +50,6 @@
         font-size: 13px;
         min-width: 100px;
         color: $background-button-primary;
-
         border-bottom: 1px solid $text-white-primary;
         background: linear-gradient(
           180deg,
@@ -107,26 +110,67 @@
   pointer-events: none;
 }
 
-.toggle-button {
-  display: block;
-  margin: 10px auto 20px;
-  padding: 8px 16px;
-  background-color: $text-primary;
-  color: $background-secondary;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: background-color 0.2s ease;
+.toggle-section {
+  display: flex;
+  justify-content: center;
+}
 
-  &:hover {
-    background-color: $background-button-primary;
-  }
+.toggle-button {
+  margin: 16px 0;
 }
 
 .no-selection {
   padding: 20px;
   text-align: center;
   color: $text-muted;
+  font-size: 16px;
+}
+
+@media (max-width: 768px) {
+  .container {
+    gap: 20px;
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .subtitle {
+    font-size: 0.875rem;
+  }
+
+  .table-container {
+    .statistic-table {
+      min-width: 700px;
+
+      thead th {
+        padding: 10px 12px;
+        font-size: 12px;
+      }
+
+      tbody td {
+        padding: 8px 12px;
+        font-size: 12px;
+      }
+
+      .sticky-col {
+        min-width: 140px;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    gap: 16px;
+  }
+
+  .title {
+    font-size: 1.125rem;
+  }
+
+  .no-selection {
+    padding: 16px;
+    font-size: 14px;
+  }
 }

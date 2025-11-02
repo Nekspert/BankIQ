@@ -4,8 +4,32 @@
   gap: 24px;
   padding: 32px 0;
   width: 100%;
+  margin-left: auto;
   max-width: 1400px;
-  margin: 0 auto;
+  transition: all 0.3s ease-in-out;
+  position: relative;
+  &__wrapper {
+    display: flex;
+    position: relative;
+    gap: 20px;
+  }
+  &__menu-icon {
+    margin-left: auto;
+    width: 30px;
+    height: 30px;
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed; 
+    top: 100px;
+    left: 0;
+    padding: 10px;
+    box-sizing: content-box;
+    background-color: $background-primary-hover;
+    border: 1px solid $text-muted;
+    border-radius: 0 10px 10px 0;
+  }
 }
 
 .header {

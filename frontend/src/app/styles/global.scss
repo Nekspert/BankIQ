@@ -7,8 +7,10 @@ body {
   justify-content: center;
   align-items: center;
   background-color: $background-primary;
+  color: $text-primary;
   font-family: 'Mulish', serif;
   font-weight: 500;
+  scroll-behavior: smooth;
 }
 
 #root {

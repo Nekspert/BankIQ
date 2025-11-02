@@ -1,0 +1,35 @@
+.section {
+  width: 100%;
+
+  &--padding {
+    &-none {
+      padding: 0;
+    }
+
+    &-small {
+      padding: 16px 20px;
+    }
+
+    &-medium {
+      padding: 24px 20px;
+    }
+
+    &-large {
+      padding: 32px 20px;
+    }
+  }
+
+  &--background {
+    &-primary {
+      background: $background-primary;
+    }
+
+    &-secondary {
+      background: $background-secondary;
+    }
+
+    &-transparent {
+      background: transparent;
+    }
+  }
+}
