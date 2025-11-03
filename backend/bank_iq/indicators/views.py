@@ -75,7 +75,6 @@ class AllBanksAPIView(APIView):
             return Response(data, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
         out_serializer = AllBanksSerializer(instance=data)
-        out_serializer.is_valid(raise_exception=True)
         return Response(out_serializer.data, status=status.HTTP_200_OK)
 
 
