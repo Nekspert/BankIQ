@@ -1,9 +1,10 @@
 import { SkeletonBlock } from '@/shared/ui/loader/SkeletonBlock';
 import styles from './styles.module.scss';
+import Section from '@/shared/ui/section/Section';
 
 export const TableLoader = () => {
   return (
-    <div className={styles['statistic-block']}>
+    <Section withBorder>
       <div className={styles['statistic-header']}>
         <div>
           <h2 className={styles['title']}>Загрузка...</h2>
@@ -18,6 +19,6 @@ export const TableLoader = () => {
       <div style={{ marginTop: 12 }}>
         <SkeletonBlock kind="chart" />
       </div>
-    </div>
+    </Section>
   );
 };

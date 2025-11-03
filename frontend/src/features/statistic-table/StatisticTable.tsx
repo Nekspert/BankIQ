@@ -71,24 +71,21 @@ export const StatisticTable: FC<StatisticTableProps> = memo(
         padding="medium"
         background="secondary"
         className={styles.container}
+        withBorder
       >
-        <Section padding="none" background="transparent">
-          <Title level={2} size="large" className={styles.title}>
-            {tableSubtitle}
-          </Title>
-          <Title level={3} size="small" className={styles.subtitle}>
-            За период: {dateRange.from_year} - {dateRange.to_year}
-          </Title>
-        </Section>
+        <Title level={2} size="large" className={styles.title}>
+          {tableSubtitle}
+        </Title>
+        <Title level={3} size="small" className={styles.subtitle}>
+          За период: {dateRange.from_year} - {dateRange.to_year}
+        </Title>
 
-        <Section padding="none" background="transparent">
           <DateRangeFilter
             initialFromYear={dateRange.from_year}
             initialToYear={dateRange.to_year}
             minYear={minYear}
             onApply={handleDateChange}
           />
-        </Section>
 
         <Section padding="none" background="transparent">
           <div className={styles['table-container']} style={containerStyle}>

@@ -8,6 +8,7 @@ export const Section: FC<SectionProps> = ({
   className,
   padding = 'medium',
   background = 'secondary',
+  withBorder = false,
 }) => {
   return (
     <section
@@ -15,7 +16,8 @@ export const Section: FC<SectionProps> = ({
         styles.section,
         styles[`section--padding-${padding}`],
         styles[`section--background-${background}`],
-        className
+        className,
+        { [styles['section--bordered']]: withBorder }
       )}
     >
       {children}

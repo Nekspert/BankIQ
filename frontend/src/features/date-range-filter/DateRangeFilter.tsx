@@ -34,7 +34,7 @@ export const DateRangeFilter: FC<DateRangeFilterProps> = ({
 
   return (
     <Section
-      padding="medium"
+      padding="none"
       background="secondary"
       className={styles['date-filter']}
     >
