@@ -156,3 +156,21 @@ class BankIndicatorDataSerializer(serializers.Serializer):
             required=True,
             help_text="Исходящий итог (iitg) — значение на конец периода / итоговое значение."
     )
+
+
+class UniqueIndicatorSerializer(serializers.Serializer):
+    name = serializers.CharField(
+            required=True,
+            help_text="Читабельное название индикатора (показателя) формы 101."
+    )
+    ind_code = serializers.CharField(
+            required=True,
+            help_text="Код индикатора (IndCode / numsc) — строковое значение, используется для сопоставления."
+    )
+
+
+class UniqueIndicatorsSerializer(serializers.Serializer):
+    indicators = UniqueIndicatorSerializer(
+            many=True,
+            help_text="Список доступных индикаторов (catalog) — каждый элемент описан UniqueIndicatorSerializer."
+    )
