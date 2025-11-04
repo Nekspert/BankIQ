@@ -1,0 +1,110 @@
+.settingsRow {
+  display: flex;
+  gap: 20px;
+}
+.column {
+  flex: 1;
+  min-width: 320px;
+}
+.sectionTitle {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: $text-primary;
+}
+.searchWrapper {
+  margin-bottom: 12px;
+}
+.searchInput {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #e6e9ef;
+  background: $background-secondary;
+}
+.list {
+  max-height: 360px;
+  overflow: auto;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  padding: 8px;
+  background: $background-secondary;
+}
+.item {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.item:hover {
+  background: $background-primary-hover;
+}
+.item.selected {
+  box-shadow: 0 1px 2px $background-primary-shadow;
+  background: $background-primary;
+}
+.item input {
+  width: 16px;
+  height: 16px;
+}
+
+.indicatorsList {
+  max-height: 360px;
+  overflow: auto;
+  border: 1px solid #f0f0f0;
+  padding: 8px;
+  border-radius: 8px;
+}
+.indicatorRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  gap: 8px;
+}
+.controls {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.addList{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.iconBtn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 6px;
+}
+.removeBtn {
+  color: $error;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+.addSection {
+  margin-top: 12px;
+}
+.addBtn {
+  border: none;
+  background: $background-button-blue-primary;
+  color: $text-white-primary;
+  padding: 8px 10px;
+  border-radius: 6px;
+  text-align: start;
+  cursor: pointer;
+}
+.footer {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 12px;
+}
+.noResults {
+  color: $text-muted;
+  padding: 12px;
+  text-align: center;
+}
