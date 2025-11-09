@@ -133,5 +133,7 @@ SPECTACULAR_SETTINGS = {
     'TITLE': 'User Management API',  # Название API
     'DESCRIPTION': 'API сервиса BankIQ',  # Описание API
     'VERSION': '1.0.0',  # Версия API
-    'SERVE_INCLUDE_SCHEMA': False,  # Отключение схемы в ответах API
+    'SERVE_INCLUDE_SCHEMA': False,  # Отключение схемы в ответах API,
+    'SCHEMA_PATH_PREFIX': r'/api/',
+    'SCHEMA_PATH_PREFIX_TRIM': True,
 }
