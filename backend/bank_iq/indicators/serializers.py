@@ -80,7 +80,7 @@ class RegNumAndDatetimeSerializer(serializers.Serializer):
         return validated
 
 
-class IndicatorSerializer(serializers.Serializer):
+class Indicator101Serializer(serializers.Serializer):
     name = serializers.CharField(
             required=True,
             help_text="Читабельное название индикатора (показателя) формы 101."
@@ -95,14 +95,14 @@ class IndicatorSerializer(serializers.Serializer):
     )
 
 
-class IndicatorsSerializer(serializers.Serializer):
-    indicators = IndicatorSerializer(
+class Indicators101Serializer(serializers.Serializer):
+    indicators = Indicator101Serializer(
             many=True,
-            help_text="Список доступных индикаторов (catalog) — каждый элемент описан IndicatorSerializer."
+            help_text="Список доступных индикаторов (catalog) — каждый элемент описан Indicator101Serializer."
     )
 
 
-class BankIndicatorRequestSerializer(serializers.Serializer):
+class BankIndicator101RequestSerializer(serializers.Serializer):
     reg_number = serializers.IntegerField(
             required=True,
             help_text="Регистрационный номер банка (целое положительное число). Пример: 1481."
@@ -135,7 +135,7 @@ class BankIndicatorRequestSerializer(serializers.Serializer):
         return validated
 
 
-class BankIndicatorDataSerializer(serializers.Serializer):
+class BankIndicator101DataSerializer(serializers.Serializer):
     bank_reg_number = serializers.CharField(
             required=True,
             help_text=(
@@ -195,3 +195,29 @@ class BankIndicatorDataSerializer(serializers.Serializer):
             naive = orig_dt.replace(tzinfo=None)
             instance['date'] = naive
         return super().to_representation(instance)
+
+
+class Indicator123Serializer(serializers.Serializer):
+    name = serializers.CharField(
+            required=True,
+            help_text="Читабельное название индикатора (показателя) формы 123.")
+
+
+class Indicators123Serializer(serializers.Serializer):
+    indicators = Indicator123Serializer(
+            many=True,
+            help_text="Список доступных индикаторов (catalog) — каждый элемент описан Indicators123Serializer.")
+
+
+class BankIndicator123DataSerializer(serializers.Serializer):
+    bank_reg_number = serializers.CharField(
+            required=True,
+            help_text=(
+                "Регистрационный номер банка (используем для связывания данных с организацией).\n"
+                "Тип: строка — может быть приведён из числового поля источника."))
+    name = serializers.CharField(
+            required=True,
+            help_text="Читабельное название индикатора (показателя) формы 123.")
+    value = serializers.FloatField(
+            required=True,
+            help_text="Значение показателя.")

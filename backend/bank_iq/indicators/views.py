@@ -10,8 +10,11 @@ from rest_framework.views import APIView
 
 from core.parsers.soap.all_banks_parser import CbrAllBanksParser
 from core.parsers.soap.form101_parser import Form101Parser
-from .serializers import AllBanksSerializer, BankIndicatorDataSerializer, BankIndicatorRequestSerializer, \
-    DateTimesSerializer, IndicatorsSerializer, RegNumAndDatetimeSerializer, RegNumberSerializer
+from core.parsers.soap.form123_parser import Form123Parser
+from .serializers import AllBanksSerializer, BankIndicator101DataSerializer, BankIndicator101RequestSerializer, \
+    BankIndicator123DataSerializer, DateTimesSerializer, Indicators101Serializer, Indicators123Serializer, \
+    RegNumAndDatetimeSerializer, \
+    RegNumberSerializer
 
 
 class AllBanksAPIView(APIView):
@@ -84,7 +87,7 @@ class AllBanksAPIView(APIView):
         return Response(out_serializer.data, status=status.HTTP_200_OK)
 
 
-class DatetimesAPIView(APIView):
+class Datetimes101APIView(APIView):
     @extend_schema(
             summary="Список доступных дат формы F101 для банка",
             description=(
@@ -148,7 +151,7 @@ class DatetimesAPIView(APIView):
         return Response(out_serializer.data, status=status.HTTP_200_OK)
 
 
-class IndicatorsAPIView(APIView):
+class Indicators101APIView(APIView):
     @extend_schema(
             summary="Список доступных индикаторов формы F101 для банка",
             description=(
@@ -173,7 +176,7 @@ class IndicatorsAPIView(APIView):
             request=RegNumAndDatetimeSerializer,
             responses={
                 200: OpenApiResponse(
-                        response=IndicatorsSerializer,
+                        response=Indicators101Serializer,
                         description="Успешный ответ — объект с полем `indicators` (список индикаторов).",
                         examples=[
                             OpenApiExample(
@@ -217,11 +220,11 @@ class IndicatorsAPIView(APIView):
         if 'message' in data:
             return Response(data, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
-        out_serializer = IndicatorsSerializer(instance=data)
+        out_serializer = Indicators101Serializer(instance=data)
         return Response(out_serializer.data, status=status.HTTP_200_OK)
 
 
-class BankIndicatorAPIView(APIView):
+class BankIndicator101APIView(APIView):
     @extend_schema(
             summary="Данные одного индикатора формы F101 для банка",
             description=(
@@ -243,7 +246,7 @@ class BankIndicatorAPIView(APIView):
                     "- `vitg` (float) — входящие остатки (VITG) — итого, тыс. руб.\n"
                     "- `iitg` (float) — исходящие остатки (IITG) — итого, тыс. руб.\n\n"
             ),
-            request=BankIndicatorRequestSerializer,
+            request=BankIndicator101RequestSerializer,
             examples=[
                 OpenApiExample(
                         name="Пример запроса",
@@ -259,7 +262,7 @@ class BankIndicatorAPIView(APIView):
             ],
             responses={
                 200: OpenApiResponse(
-                        response=BankIndicatorDataSerializer,
+                        response=BankIndicator101DataSerializer,
                         description=(
                                 "Успешный ответ — массив объектов с данными индикатора "
                                 "(каждый объект — один момент/запись)."
@@ -278,7 +281,7 @@ class BankIndicatorAPIView(APIView):
             }
     )
     def post(self, request: Request, *args, **kwargs) -> Response:
-        in_serializer = BankIndicatorRequestSerializer(data=request.data)
+        in_serializer = BankIndicator101RequestSerializer(data=request.data)
         in_serializer.is_valid(raise_exception=True)
         reg_number = in_serializer.validated_data['reg_number']
         ind_code = str(in_serializer.validated_data['ind_code']).strip()
@@ -289,11 +292,11 @@ class BankIndicatorAPIView(APIView):
         if 'message' in data:
             return Response(data, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
-        out_serializer = BankIndicatorDataSerializer(instance=data, many=True)
+        out_serializer = BankIndicator101DataSerializer(instance=data, many=True)
         return Response(out_serializer.data, status=status.HTTP_200_OK)
 
 
-class UniqueIndicatorsAPIView(APIView):
+class UniqueIndicators101APIView(APIView):
     @extend_schema(
             summary="Список уникальных индикаторов формы F101",
             description=(
@@ -304,7 +307,7 @@ class UniqueIndicatorsAPIView(APIView):
             ),
             responses={
                 200: OpenApiResponse(
-                        response=IndicatorsSerializer,
+                        response=Indicators101Serializer,
                         description="Успешный ответ — объект с полем `indicators` (список индикаторов).",
                         examples=[
                             OpenApiExample(
@@ -338,5 +341,175 @@ class UniqueIndicatorsAPIView(APIView):
         except Exception as e:
             return Response({'message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        out_serializer = IndicatorsSerializer(instance=data)
+        out_serializer = Indicators101Serializer(instance=data)
+        return Response(out_serializer.data, status=status.HTTP_200_OK)
+
+
+class Datetimes123APIView(APIView):
+    @extend_schema(
+            summary="Список доступных дат формы F123 для банка",
+            description=(
+                    "Возвращает список дат (меток времени), для которых у банка доступна форма F123 в сервисе ЦБ "
+                    "РФ.\n\n Входной параметр: JSON `{ \"reg_number\": <int> }`.\n\n"
+                    "Формат и часовой пояс: возвращаемые даты представлены в ISO-8601.\n"
+                    "Если используется aware-datetime, в ответе они будут конвертированы в UTC (Z).\n\n"
+                    "Пример запроса: `{ \"reg_number\": 1481 }`.\n"
+            ),
+            request=RegNumberSerializer,
+            responses={
+                200: OpenApiResponse(
+                        response=DateTimesSerializer,
+                        description="Успешный ответ — доступные даты формы F123.",
+                        examples=[
+                            OpenApiExample(
+                                    name="Успешный ответ — пример",
+                                    value={
+                                        "datetimes": [
+                                            "2023-10-01T00:00:00+00:00",
+                                            "2023-11-01T00:00:00+00:00"
+                                        ]
+                                    }
+                            )
+                        ]
+                ),
+                422: OpenApiResponse(
+                        description="Ошибка получения данных от внешнего SOAP-сервиса или внутренняя ошибка.",
+                        examples=[
+                            OpenApiExample(
+                                    name="Ошибка внешнего API",
+                                    value={"message": "Ошибка внешнего API: <описание ошибки>"}
+                            ),
+                            OpenApiExample(
+                                    name="Внутренняя ошибка",
+                                    value={"message": "Внутренняя ошибка: <описание ошибки>"}
+                            ),
+                        ]
+                ),
+                400: OpenApiResponse(
+                        description="Неверный запрос: тело не соответствует RegNumberSerializer.",
+                        examples=[
+                            OpenApiExample(
+                                    name="Пример ошибки валидации",
+                                    value={"reg_number": ["A valid integer is required."]}
+                            )
+                        ]
+                )
+            }
+    )
+    def post(self, request: Request, *args, **kwargs) -> Response:
+        in_serializer = RegNumberSerializer(data=request.data)
+        in_serializer.is_valid(raise_exception=True)
+        reg_number = in_serializer.validated_data['reg_number']
+
+        data = Form123Parser.get_dates_for_f123(reg_number)
+        if 'message' in data:
+            return Response(data, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+        out_serializer = DateTimesSerializer(instance=data)
+        return Response(out_serializer.data, status=status.HTTP_200_OK)
+
+
+class Indicators123APIView(APIView):
+    @extend_schema(
+            summary="Список доступных индикаторов формы F123 для банка",
+            description=(
+                    "Возвращает список индикаторов формы F123, которые реально заполнены "
+                    "для заданного банка на указанную дату.\n\n"
+                    "Вход (JSON): `{ \"reg_number\": <int>, \"dt\": \"<ISO-8601 datetime>\" }`.\n\n"
+                    "Возвращаемая структура: `{ \"indicators\": [ { \"name\": ... }, ... ] }`.\n\n"
+                    "Коды ответов:\n"
+                    "- 200 — OK (список индикаторов)\n"
+                    "- 400 — неверный формат запроса (валидатор)\n"
+                    "- 422 — ошибка при обращении к внешнему SOAP-сервису или внутренняя ошибка парсера"
+            ),
+            request=RegNumAndDatetimeSerializer,
+            examples=[
+                OpenApiExample(
+                        name="Пример запроса",
+                        value={
+                            "reg_number": 1481,
+                            "dt": "2024-06-01T00:00:00Z",
+                        },
+                        request_only=True,
+                        media_type='application/json'
+                )
+            ],
+            responses={
+                200: OpenApiResponse(
+                        response=Indicators123Serializer,
+                        description="Список доступных индикаторов F123."
+                ),
+                400: OpenApiResponse(description="Ошибка валидации запроса."),
+                422: OpenApiResponse(description="Ошибка внешнего API или парсера.")
+            }
+    )
+    def post(self, request: Request, *args, **kwargs) -> Response:
+        """
+        Обрабатывает POST-запрос:
+        - валидирует входные данные через RegNumAndDatetimeSerializer (reg_number, dt),
+        - вызывает Form123Parser.get_form123_indicators_from_data123(reg_number, dt),
+        - возвращает сериализованный ответ Indicators123Serializer.
+        """
+        in_serializer = RegNumAndDatetimeSerializer(data=request.data)
+        in_serializer.is_valid(raise_exception=True)
+        reg_number = in_serializer.validated_data['reg_number']
+        dt = in_serializer.validated_data['dt']
+
+        data = Form123Parser.get_form123_indicators_from_data123(reg_number, dt)
+        if 'message' in data:
+            return Response(data, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+        out_serializer = Indicators123Serializer(instance=data)
+        return Response(out_serializer.data, status=status.HTTP_200_OK)
+
+
+class BankIndicator123APIView(APIView):
+    @extend_schema(
+            summary="Значения индикаторов формы F123 для банка на дату",
+            description=(
+                    "Возвращает значения показателей формы F123 (name/value) для заданного банка на указанную дату.\n\n"
+                    "Вход (JSON): `{ \"reg_number\": <int>, \"dt\": \"<ISO-8601 datetime>\" }`.\n\n"
+                    "Возвращаемая структура: массив объектов, каждый объект — `{ \"bank_reg_number\": ...,"
+                    " \"name\": ..., \"value\": ... }`.\n\n"
+                    "Коды ответов:\n"
+                    "- 200 — OK (массив значений)\n"
+                    "- 400 — неверный формат запроса\n"
+                    "- 422 — ошибка при обращении к внешнему SOAP-сервису или внутренняя ошибка"
+            ),
+            request=RegNumAndDatetimeSerializer,
+            examples=[
+                OpenApiExample(
+                        name="Пример запроса",
+                        value={
+                            "reg_number": 1481,
+                            "dt": "2024-06-01T00:00:00Z",
+                        },
+                        request_only=True,
+                        media_type='application/json'
+                )
+            ],
+            responses={
+                200: OpenApiResponse(response=BankIndicator123DataSerializer,
+                                     description="Массив значений индикаторов F123."),
+                400: OpenApiResponse(description="Ошибка валидации запроса."),
+                422: OpenApiResponse(description="Ошибка внешнего API или парсера.")
+            }
+    )
+    def post(self, request: Request, *args, **kwargs) -> Response:
+        """
+        Обрабатывает POST-запрос:
+        - валидирует входные данные через RegNumAndDatetimeSerializer,
+        - вызывает Form123Parser.get_data123_form_full(reg_number, dt),
+        - возвращает сериализованный список через BankIndicator123DataSerializer(many=True).
+        """
+        in_serializer = RegNumAndDatetimeSerializer(data=request.data)
+        in_serializer.is_valid(raise_exception=True)
+        reg_number = in_serializer.validated_data['reg_number']
+        dt = in_serializer.validated_data['dt']
+
+        data = Form123Parser.get_data123_form_full(reg_number, dt)
+        if 'message' in data:
+            return Response(data, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+        out_serializer = BankIndicator123DataSerializer(instance=data, many=True)
         return Response(out_serializer.data, status=status.HTTP_200_OK)
