@@ -1,6 +1,7 @@
 import axios from 'axios';
 import type { GetBankIndicatorParams } from './hooks/indicators/useGetIndicatorData';
 import type { GetSupportedIndicatorsParams } from './hooks/indicators/useGetSupportedIndicators';
+import type { Indicator } from '@/features/settings-modal/types';
 
 export interface BankIndicator {
   bic: string;
@@ -22,22 +23,28 @@ export const indicatorsApi = {
     return data;
   },
   getSupportedDates: async (reg_number: number) => {
-    const { data } = await axios.post('/api/indicators/bank-datetimes/', {
+    const { data } = await axios.post('/api/indicators/f101/bank-datetimes/', {
       reg_number,
     });
     return data;
   },
   getIndicatorData: async (params: GetBankIndicatorParams) => {
     const { data } = await axios.post(
-      '/api/indicators/bank-indicator-data/',
+      '/api/indicators/f101/bank-indicator-data/',
       params
     );
     return data;
   },
   getSupportedIndicators: async (params: GetSupportedIndicatorsParams) => {
     const { data } = await axios.post(
-      '/api/indicators/form-indicators/',
+      '/api/indicators/f101/form-indicators/',
       params
+    );
+    return data;
+  },
+  getUniqueIndicators: async (): Promise<Indicator[]> => {
+    const { data } = await axios.get(
+      'api/indicators/f101/unique-form-indicators'
     );
     return data;
   },

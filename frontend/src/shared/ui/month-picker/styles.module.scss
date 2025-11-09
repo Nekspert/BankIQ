@@ -1,0 +1,49 @@
+.month-picker-wrapper {
+  display: inline-block;
+  position: relative;
+  z-index: 100;
+}
+
+.month-input {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(16, 24, 40, 0.06);
+  background: $background-secondary;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.03);
+  font-family: $font-family-base;
+  color: $text-primary;
+  min-width: 240px;
+}
+
+.react-datepicker {
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.08);
+  font-family: $font-family-base;
+}
+
+.react-datepicker__current-month {
+  color: $text-primary;
+  font-weight: 600;
+}
+
+.react-datepicker__navigation--previous,
+.react-datepicker__navigation--next {
+  top: 8px;
+  line-height: 1;
+}
+
+.react-datepicker__month-text {
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: all 0.3s ease-in-out;
+}
+
+.react-datepicker__month-text:hover {
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.react-datepicker__month--selected,
+.react-datepicker__month--selected:hover {
+  background: $background-button-blue-primary;
+  color: $text-white-primary;
+}

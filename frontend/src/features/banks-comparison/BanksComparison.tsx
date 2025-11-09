@@ -1,119 +1,50 @@
-import { useState, useEffect } from 'react';
-import { useGetAllBanks } from '@/shared/api/hooks/indicators/useGetAllBanks';
 import Section from '@/shared/ui/section/Section';
 import Title from '@/shared/ui/title/Title';
 import Button from '@/shared/ui/button/Button';
 import { TableLoader } from '../table-loader/TableLoader';
-import styles from './styles.module.scss';
-import { BANK_TOP_INDICATORS, DEFAULT_BANKS_REGS } from './constants';
-import { indicatorsApi, type BankIndicator } from '@/shared/api/indicatorsApi';
 import AddBankModal from '../add-bank-modal/AddBankModal';
-import SettingsModal, { type Indicator } from '../settings-modal/SettingsModal';
-import { useLocalStorage } from '@/shared/hooks/useLocalStorage';
-import { useGetSupportedIndicators } from '@/shared/api/hooks/indicators/useGetSupportedIndicators';
+import SettingsModal from '../settings-modal/SettingsModal';
 import FilterSvg from './icons/filter.svg';
+import styles from './styles.module.scss';
+import { useBanksComparison } from './hooks/useBanksComparison';
+import { formatNumber } from './utils/format';
+import MonthPicker from '@/shared/ui/month-picker/MonthPicker';
+import ToggleSwitch from '@/shared/ui/toggle-switch/ToggleSwitch';
+import type { CSSProperties } from 'react';
 
 export const BanksComparison = () => {
-  const { data: allBanksData } = useGetAllBanks();
-  const allBanks = allBanksData?.banks;
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-
-  const [selectedBanks, setSelectedBanks] = useLocalStorage<BankIndicator[]>(
-    'banks-list',
-    []
-  );
-
-  const [selectedIndicators, setSelectedIndicators] = useLocalStorage<
-    Indicator[]
-  >('selected-indicators', BANK_TOP_INDICATORS);
-
-  const [indicatorData, setIndicatorData] = useState<
-    Record<string, Record<string, number | null>>
-  >({});
-
-  const dateFrom = '2024-01-01T00:00:00';
-  const dateTo = '2024-10-31T23:59:59';
-
-  // useGetSupportedIndicators({
-  //   reg_number: 1000,
-  //   dt: '2024-07-01T00:00:00Z',
-  // });
-
-  const fetchData = async () => {
-    if (!selectedBanks?.length) return;
-
-    const requests = selectedBanks.flatMap((bank) =>
-      selectedIndicators.map((indicator) =>
-        indicatorsApi
-          .getIndicatorData({
-            reg_number: Number(bank.reg_number),
-            ind_code: indicator.ind_code,
-            date_from: dateFrom,
-            date_to: dateTo,
-          })
-          .then((res) => ({
-            bankReg: bank.reg_number,
-            ind_code: indicator.ind_code,
-            value: res?.iitg ?? null,
-          }))
-      )
-    );
-
-    const results = await Promise.allSettled(requests);
-
-    const indicatorValues: Record<string, Record<string, number | null>> = {};
-
-    for (const r of results) {
-      if (r.status === 'fulfilled') {
-        const { bankReg, ind_code, value } = r.value;
-        if (!indicatorValues[bankReg]) indicatorValues[bankReg] = {};
-        indicatorValues[bankReg][ind_code] = value;
-      } else {
-        console.warn('Ошибка запроса индикатора:', r.reason);
-      }
-    }
-
-    setIndicatorData(indicatorValues);
-  };
-
-  useEffect(() => {
-    if (!selectedBanks?.length) return;
-    fetchData();
-  }, [selectedBanks, selectedIndicators]);
-
-  const handleAddBanks = (banks: BankIndicator[]) => {
-    setSelectedBanks((prev) => [...(prev || []), ...banks]);
-  };
-
-  const handleRemoveBank = (bic: string) => {
-    setSelectedBanks((prev) => prev?.filter((bank) => bank.bic !== bic));
-  };
-
-  useEffect(() => {
-    if (allBanks && selectedBanks.length === 0) {
-      const defaultBanks = allBanks.filter((bank) =>
-        DEFAULT_BANKS_REGS.includes(bank.reg_number)
-      );
-      setSelectedBanks(defaultBanks);
-    }
-  }, [allBanks, selectedBanks, setSelectedBanks]);
+  const {
+    allBanks,
+    selectedBanks,
+    selectedIndicators,
+    indicatorData,
+    handleAddBanks,
+    handleRemoveBank,
+    setSelectedBanks,
+    setSelectedIndicators,
+    isModalOpen,
+    setIsModalOpen,
+    isSettingsOpen,
+    setIsSettingsOpen,
+    indCodeCounts,
+    fromMonth,
+    setFromMonth,
+    toMonth,
+    setToMonth,
+    showDynamics,
+    setShowDynamics,
+  } = useBanksComparison();
 
   if (!allBanks) return <TableLoader />;
 
-  const indCodeCounts = selectedIndicators.reduce<Record<string, number>>(
-    (acc, ind) => {
-      acc[ind.ind_code] = (acc[ind.ind_code] || 0) + 1;
-      return acc;
-    },
-    {}
-  );
-
   const indCodeSeen: Record<string, number> = {};
 
-  const formatNumber = (value: number | null | undefined) =>
-    value != null ? new Intl.NumberFormat('ru-RU').format(value) : '—';
+  const toDate = (ym?: string | null) => {
+    if (!ym) return;
+    const [y, m] = ym.split('-').map(Number);
+    if (!y || !m) return;
+    return new Date(y, m - 1, 1);
+  };
 
   return (
     <>
@@ -127,7 +58,6 @@ export const BanksComparison = () => {
           <Title size="large" className={styles.title}>
             Сравнение банков
           </Title>
-
           <div className={styles['controls']}>
             <Button
               variant="ghost"
@@ -138,7 +68,46 @@ export const BanksComparison = () => {
             </Button>
           </div>
         </div>
-
+        <div className={styles['date-controls']}>
+          {showDynamics ? (
+            <div className={styles['date-controls-inputs']}>
+              <div className={styles['date-label-wrapper']}>
+                <span className={styles['date-label-title']}>От</span>
+                <MonthPicker
+                  value={fromMonth}
+                  onChange={(v) => setFromMonth(v)}
+                  maxDate={toDate(toMonth)}
+                  ariaLabel="Дата с"
+                />
+              </div>
+              <div className={styles['date-label-wrapper']}>
+                <span className={styles['date-label-title']}>На дату</span>
+                <MonthPicker
+                  value={toMonth}
+                  onChange={(v) => setToMonth(v)}
+                  maxDate={new Date()}
+                  minDate={toDate(fromMonth)}
+                  ariaLabel="Дата по"
+                />
+              </div>
+            </div>
+          ) : (
+            <div className={styles['date-label-wrapper']}>
+              <span className={styles['date-label-title']}>На дату</span>
+              <MonthPicker
+                value={toMonth}
+                onChange={(v) => setToMonth(v)}
+                maxDate={new Date()}
+                ariaLabel="Дата на"
+              />
+            </div>
+          )}
+          <ToggleSwitch
+            checked={showDynamics}
+            onChange={setShowDynamics}
+            label="Показывать динамику"
+          />
+        </div>
         <div className={styles['table-container']}>
           <table className={styles['statistic-table']}>
             <thead>
@@ -169,7 +138,6 @@ export const BanksComparison = () => {
                 </th>
               </tr>
             </thead>
-
             <tbody>
               {selectedIndicators.map((indicator) => {
                 const code = indicator.ind_code;
@@ -178,16 +146,39 @@ export const BanksComparison = () => {
                 const rowKey = needSuffix
                   ? `${code}_${indCodeSeen[code] - 1}`
                   : code;
-
                 return (
                   <tr key={rowKey}>
                     <td className={styles['sticky-col']}>{indicator.name}</td>
-                    {selectedBanks.map((bank) => (
-                      <td key={`${bank.bic}_${rowKey}`}>
-                        {formatNumber(indicatorData[bank.reg_number]?.[code])}
-                      </td>
-                    ))}
-                    <td></td>
+                    {selectedBanks.map((bank) => {
+                      const rawVal =
+                        indicatorData[bank.reg_number]?.[code]?.iitg;
+                      const startVal =
+                        indicatorData[bank.reg_number]?.[code]?.vitg;
+                      const delta = startVal
+                        ? ((rawVal || 0) - (startVal || 0)) / (startVal || 1)
+                        : null;
+                      const deltaPercent =
+                        delta != null ? Math.round(delta * 100) : null;
+                      let cellStyle: CSSProperties = {};
+                      if (showDynamics && delta != null) {
+                        if (delta > 0) cellStyle.backgroundColor = '#DCFCE7';
+                        else if (delta < 0)
+                          cellStyle.backgroundColor = '#FEE2E2';
+                      }
+                      return (
+                        <td key={`${bank.bic}_${rowKey}`} style={cellStyle} className={styles['cell']}>
+                          {showDynamics && deltaPercent != null && (
+                            <span className={styles['cell-delta']}>
+                              {deltaPercent > 0
+                                ? `+${deltaPercent}%`
+                                : `${deltaPercent}%`}
+                            </span>
+                          )}
+                          {formatNumber(rawVal)}
+                        </td>
+                      );
+                    })}
+                    <td />
                   </tr>
                 );
               })}
@@ -201,7 +192,6 @@ export const BanksComparison = () => {
         onClose={() => setIsModalOpen(false)}
         allBanks={allBanks}
         selectedBanks={selectedBanks}
-        popularBankBics={DEFAULT_BANKS_REGS}
         onAddBanks={handleAddBanks}
       />
 
