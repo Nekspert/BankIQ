@@ -18,13 +18,13 @@
   width: 100%;
   padding: 8px 10px;
   border-radius: 8px;
-  border: 1px solid #e6e9ef;
+  border: 1px solid $background-primary;
   background: $background-secondary;
 }
 .list {
   max-height: 360px;
   overflow: auto;
-  border: 1px solid #f0f0f0;
+  border: 1px solid $background-primary;
   border-radius: 8px;
   padding: 8px;
   background: $background-secondary;
@@ -52,7 +52,7 @@
 .indicatorsList {
   max-height: 360px;
   overflow: auto;
-  border: 1px solid #f0f0f0;
+  border: 1px solid $background-primary;
   padding: 8px;
   border-radius: 8px;
 }

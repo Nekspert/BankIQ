@@ -4,7 +4,7 @@ import Button from '@/shared/ui/button/Button';
 import { TableLoader } from '../table-loader/TableLoader';
 import AddBankModal from '../add-bank-modal/AddBankModal';
 import SettingsModal from '../settings-modal/SettingsModal';
-import FilterSvg from './icons/filter.svg';
+import FilterSvg from './icons/filter.svg?react';
 import styles from './styles.module.scss';
 import { useBanksComparison } from './hooks/useBanksComparison';
 import { formatNumber } from './utils/format';
@@ -64,7 +64,7 @@ export const BanksComparison = () => {
               className={styles['filter']}
               onClick={() => setIsSettingsOpen(true)}
             >
-              <img src={FilterSvg} alt="filter" />
+              <FilterSvg />
             </Button>
           </div>
         </div>
@@ -161,9 +161,9 @@ export const BanksComparison = () => {
                         delta != null ? Math.round(delta * 100) : null;
                       let cellStyle: CSSProperties = {};
                       if (showDynamics && delta != null) {
-                        if (delta > 0) cellStyle.backgroundColor = '#DCFCE7';
+                        if (delta > 0) cellStyle.backgroundColor = 'var(--light-green)';
                         else if (delta < 0)
-                          cellStyle.backgroundColor = '#FEE2E2';
+                          cellStyle.backgroundColor = 'var(--light-red)';
                       }
                       return (
                         <td key={`${bank.bic}_${rowKey}`} style={cellStyle} className={styles['cell']}>

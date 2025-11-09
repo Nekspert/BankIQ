@@ -27,9 +27,12 @@
   box-sizing: content-box;
   padding: 0px !important;
   min-height: auto;
-  & > img {
+  & > svg {
     width: 20px;
     height: 20px;
+    & path{
+      stroke: $background-button-primary;
+    }
   }
 }
 

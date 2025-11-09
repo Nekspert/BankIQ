@@ -5,7 +5,7 @@ import TableFilterPanel from '@/features/table-filter-panel/TableFilterPanel';
 import { tableArray, tableConfigs } from './constants';
 import { SideMenu } from '@/features/side-menu/SideMenu';
 import classNames from 'classnames';
-import MenuIcon from './icons/menu-icon.svg';
+import MenuIcon from './icons/menu-icon.svg?react';
 import { useScrollamaObserver } from './hooks/useScrollamaObserver';
 import { useActiveGraph } from './hooks/useActiveGraph';
 import Title from '@/shared/ui/title/Title';
@@ -63,7 +63,7 @@ export const GeneralPage: FC = () => {
         className={styles['page__menu-icon']}
         onClick={handleChangeSideMenu}
       >
-        <img src={MenuIcon} alt="open" />
+        <MenuIcon />
       </button>
 
       <section

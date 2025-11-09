@@ -2,6 +2,7 @@ import { headerNavList } from '@/shared/config/constants';
 import { Link } from 'react-router-dom';
 import styles from './styles.module.scss';
 import { AppRoutes } from '@/shared/config/routes';
+import ThemeSwitcher from '@/features/theme-switcher/ThemeSwitcher';
 
 export const Header = () => {
   return (
@@ -14,6 +15,7 @@ export const Header = () => {
           <Link to={item.link}>{item.name}</Link>
         ))}
       </nav>
+      <ThemeSwitcher />
     </header>
   );
 };

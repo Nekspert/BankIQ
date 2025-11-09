@@ -28,7 +28,11 @@
     box-sizing: content-box;
     background-color: $background-primary-hover;
     border: 1px solid $text-muted;
+    border-left: none;
     border-radius: 0 10px 10px 0;
+    & svg path{
+      stroke: $background-button-primary;
+    }
   }
 }
 
