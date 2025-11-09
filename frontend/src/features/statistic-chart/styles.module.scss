@@ -17,3 +17,25 @@
   font-weight: 600;
   color: $text-primary;
 }
+
+.legend{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 12px;
+  color: $text-primary;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  &__item{
+    display: flex;
+    align-items: center;
+    &-text{
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      margin-right: 6px;
+    }
+  }
+}

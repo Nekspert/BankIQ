@@ -1,31 +1,105 @@
-// Background
-$background-primary: #f9fafb;
-$background-primary-hover: #f0f7ff;
-$background-secondary: #ffffff;
+// ============ LIGHT THEME (Default) ============
+:root,
+[data-theme='light'] {
+  // Background
+  --background-primary: #f9fafb;
+  --background-primary-hover: #f0f7ff;
+  --background-secondary: #ffffff;
 
-$background-button-primary: #1e1e2e;
-$background-button-secondary: #2a2a3c;
-$background-button-blue-primary: #2563eb;
-$background-button-blue-primary-hover: #1e40af;
+  --background-button-primary: #1e1e2e;
+  --background-button-secondary: #2a2a3c;
+  --background-button-blue-primary: #2563eb;
+  --background-button-blue-primary-hover: #1e40af;
 
-// Texts
-$text-primary: #1f2937;
-$text-muted: #4b5563;
-$text-white-primary: #e5e7eb;
-$text-white-secondary: #9ca3af;
+  // Texts
+  --text-primary: #1f2937;
+  --text-muted: #4b5563;
+  --text-white-primary: #e5e7eb;
+  --text-white-secondary: #9ca3af;
 
-// Shadows
-$background-primary-shadow: rgba(16, 24, 40, 0.03);
-$background-primary-shadow-hover: rgba(16, 24, 40, 0.08);
-$white-transparent: rgba(255, 255, 255, 0);
+  // Shadows
+  --background-primary-shadow: rgba(16, 24, 40, 0.03);
+  --background-primary-shadow-hover: rgba(16, 24, 40, 0.08);
+  --white-transparent: rgba(255, 255, 255, 0);
 
-// Scroll
-$scroll-primary: #a7a7a7;
+  // Scroll
+  --scroll-primary: #a7a7a7;
 
-// Notifications
-$error: #ef4444;
-$error-hover: #b91c1c;
-$warning: #f59e0b;
+  // Notifications
+  --error: #ef4444;
+  --error-hover: #b91c1c;
+  --warning: #f59e0b;
+
+  // Progresses
+  --light-green: #dcfce7;
+  --light-red: #fee2e2;
+}
+
+// ============ DARK THEME ============
+[data-theme='dark'] {
+  // Background
+  --background-primary: #0f172a;
+  --background-primary-hover: #1e293b;
+  --background-secondary: #1e293b;
+
+  --background-button-primary: #e2e8f0;
+  --background-button-secondary: #cbd5e1;
+  --background-button-blue-primary: #3b82f6;
+  --background-button-blue-primary-hover: #2563eb;
+
+  // Texts
+  --text-primary: #f1f5f9;
+  --text-muted: #94a3b8;
+  --text-white-primary: #334155;
+  --text-white-secondary: #475569;
+
+  // Shadows
+  --background-primary-shadow: rgba(0, 0, 0, 0.3);
+  --background-primary-shadow-hover: rgba(0, 0, 0, 0.5);
+  --white-transparent: rgba(0, 0, 0, 0);
+
+  // Scroll
+  --scroll-primary: #475569;
+
+  // Notifications
+  --error: #f87171;
+  --error-hover: #ef4444;
+  --warning: #fbbf24;
+
+  // Progresses
+  --light-green: #044119;
+  --light-red: #490707;
+}
+
+// ============ SCSS VARIABLES ============
+$background-primary: var(--background-primary);
+$background-primary-hover: var(--background-primary-hover);
+$background-secondary: var(--background-secondary);
+
+$background-button-primary: var(--background-button-primary);
+$background-button-secondary: var(--background-button-secondary);
+$background-button-blue-primary: var(--background-button-blue-primary);
+$background-button-blue-primary-hover: var(
+  --background-button-blue-primary-hover
+);
+
+$text-primary: var(--text-primary);
+$text-muted: var(--text-muted);
+$text-white-primary: var(--text-white-primary);
+$text-white-secondary: var(--text-white-secondary);
+
+$background-primary-shadow: var(--background-primary-shadow);
+$background-primary-shadow-hover: var(--background-primary-shadow-hover);
+$white-transparent: var(--white-transparent);
+
+$scroll-primary: var(--scroll-primary);
+
+$error: var(--error);
+$error-hover: var(--error-hover);
+$warning: var(--warning);
+
+$light-green: var(--light-green);
+$light-red: var(--light-red);
 
 // Fonts
 $font-family-base:

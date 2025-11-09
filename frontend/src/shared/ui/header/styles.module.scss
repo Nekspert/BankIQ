@@ -4,15 +4,82 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  &__logo{
+  gap: 20px;
+  padding: 16px 0;
+
+  &__logo {
     display: flex;
     align-items: center;
     gap: 10px;
     font-size: 22px;
+    font-weight: 600;
+    color: $text-primary;
+    transition: opacity 0.2s ease;
+
+    &:hover {
+      opacity: 0.8;
+    }
+
+    img {
+      width: 32px;
+      height: 32px;
+    }
   }
-  &__nav{
+
+  &__nav {
     display: flex;
     align-items: center;
     gap: 15px;
+    margin-right: auto;
+    margin-left: 40px;
+
+    a {
+      padding: 8px 16px;
+      border-radius: 6px;
+      color: $text-primary;
+      font-weight: 500;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: $background-primary-hover;
+        color: $background-button-blue-primary;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    &__logo {
+      font-size: 18px;
+
+      img {
+        width: 28px;
+        height: 28px;
+      }
+    }
+
+    &__nav {
+      gap: 8px;
+      margin-left: 20px;
+
+      a {
+        padding: 6px 12px;
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    flex-wrap: wrap;
+
+    &__nav {
+      order: 3;
+      width: 100%;
+      margin-left: 0;
+      justify-content: center;
+    }
   }
 }

@@ -4,21 +4,8 @@ import Button from '@/shared/ui/button/Button';
 import styles from './styles.module.scss';
 import type { BankIndicator } from '@/shared/api/indicatorsApi';
 import { useLocalStorage } from '@/shared/hooks/useLocalStorage';
-import { BANK_ALL_INDICATORS } from '../banks-comparison/constants';
-
-export type Indicator = {
-  ind_code: string;
-  name: string;
-};
-
-type SettingsModalProps = {
-  isOpen: boolean;
-  onClose: () => void;
-  allBanks: BankIndicator[];
-  selectedBanks: BankIndicator[];
-  indicators: Indicator[];
-  onSave: (banks: BankIndicator[], indicators: Indicator[]) => void;
-};
+import type { Indicator, SettingsModalProps } from './types';
+import { useGetUniqueIndicators } from '@/shared/api/hooks/indicators/useGetUniqueIndicators';
 
 const SettingsModal: FC<SettingsModalProps> = ({
   isOpen,
@@ -28,6 +15,8 @@ const SettingsModal: FC<SettingsModalProps> = ({
   indicators,
   onSave,
 }) => {
+  const {data: DEFAULT_INDICATOR_OPTIONS} = useGetUniqueIndicators()
+
   const [bankSearch, setBankSearch] = useState('');
   const [selectedForBanks, setSelectedForBanks] = useLocalStorage<
     BankIndicator[]
@@ -76,8 +65,6 @@ const SettingsModal: FC<SettingsModalProps> = ({
       return arr;
     });
   };
-
-  const DEFAULT_INDICATOR_OPTIONS: Indicator[] = BANK_ALL_INDICATORS;
 
   const handleSave = () => {
     onSave(selectedForBanks, localIndicators);
@@ -209,7 +196,7 @@ const SettingsModal: FC<SettingsModalProps> = ({
           <div className={styles.addSection}>
             <div className={styles.subTitle}>Добавить показатель</div>
             <div className={styles.addList}>
-              {DEFAULT_INDICATOR_OPTIONS.filter(
+              {DEFAULT_INDICATOR_OPTIONS?.filter(
                 (d) => !localIndicators.some((l) => l.ind_code === d.ind_code)
               ).map((d) => (
                 <div key={d.ind_code} className={styles.addItem}>
@@ -223,7 +210,7 @@ const SettingsModal: FC<SettingsModalProps> = ({
                   </button>
                 </div>
               ))}
-              {DEFAULT_INDICATOR_OPTIONS.filter(
+              {DEFAULT_INDICATOR_OPTIONS?.filter(
                 (d) => !localIndicators.some((l) => l.ind_code === d.ind_code)
               ).length === 0 && (
                 <div className={styles.noResults}>

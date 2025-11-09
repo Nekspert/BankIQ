@@ -1,0 +1,47 @@
+.wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.switch {
+  width: 44px;
+  height: 26px;
+  background: $text-white-secondary;
+  border-radius: 999px;
+  padding: 3px;
+  box-sizing: border-box;
+  transition: background 150ms;
+  display: flex;
+  align-items: center;
+}
+
+.switchChecked {
+  background: $background-button-blue-primary;
+}
+
+.switchDisabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.knob {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: $background-secondary;
+  box-shadow: 0 2px 6px rgba(16, 24, 40, 0.08);
+  transform: translateX(0);
+  transition: transform 150ms;
+}
+
+.knobChecked {
+  transform: translateX(18px);
+}
+
+.label {
+  font-size: 14px;
+  color: $text-primary;
+}

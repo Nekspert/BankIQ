@@ -73,60 +73,99 @@ export const StatisticChart: React.FC<ChartProps> = ({
         transform={`rotate(-60 ${x} ${y + offset})`}
         textAnchor="end"
         fontSize={10}
+        style={{ fill: 'var(--text-primary)' }}
       >
         {payload.value}
       </text>
     );
   };
 
+  const pointsCount = chartData.length;
+  const minPointWidth = 50;
+  const minChartWidth = 700;
+  const chartWidth = Math.max(pointsCount * minPointWidth, minChartWidth);
+
   return (
     <div className={styles['chart-wrapper']}>
       <h4 className={styles['chart-title']}>Динамика показателей</h4>
-      <ResponsiveContainer width="100%" height={420}>
-        <LineChart
-          data={chartData}
-          margin={{ top: 16, right: 24, left: 8, bottom: 90 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" stroke="#e6eef6" />
-          <XAxis
-            dataKey="dt"
-            tick={renderRotatedTick}
-            tickLine={false}
-            axisLine={{ stroke: '#e6e9ef' }}
-            interval={0}
-            height={1}
-          />
-          <YAxis
-            tickFormatter={(v) => (typeof v === 'number' ? `${v}` : String(v))}
-            tick={{ fontSize: 12 }}
-            axisLine={{ stroke: '#e6e9ef' }}
-            tickLine={false}
-          />
-          <Tooltip
-            formatter={(value: any) => (value == null ? '-' : String(value))}
-            labelFormatter={(label) => `Дата: ${label}`}
-          />
-          <Legend
-            verticalAlign="top"
-            height={60}
-            wrapperStyle={{ paddingBottom: 16, fontSize: 12 }}
-          />
-          {active.map((col, idx) => (
-            <Line
-              key={col}
-              type="monotone"
-              dataKey={col}
-              name={col}
-              stroke={COLORS[idx % COLORS.length]}
-              strokeWidth={2}
-              dot={{ r: 3 }}
-              activeDot={{ r: 5 }}
-              connectNulls={false}
-              isAnimationActive={false}
-            />
-          ))}
-        </LineChart>
-      </ResponsiveContainer>
+      <div className={styles['chart-scroll']} style={{ overflowX: 'auto' }}>
+        <div style={{ width: `${chartWidth}px`, minWidth: `${minChartWidth}px` }}>
+          <ResponsiveContainer width="100%" height={420}>
+            <LineChart
+              data={chartData}
+              margin={{ top: 16, right: 24, left: 8, bottom: 90 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--text-primary)" />
+              <XAxis
+                dataKey="dt"
+                tick={renderRotatedTick}
+                tickLine={false}
+                axisLine={{ stroke: 'var(--text-primary)' }}
+                interval={0}
+                height={1}
+              />
+              <YAxis
+                tickFormatter={(v) => (typeof v === 'number' ? `${v}` : String(v))}
+                tick={{ fontSize: 12 }}
+                axisLine={{ stroke: 'var(--text-primary)' }}
+                tickLine={false}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'var(--background-secondary)',
+                  border: '1px solid var(--text-muted)',
+                  borderRadius: 8,
+                  color: 'var(--text-primary)',
+                  fontSize: 12,
+                }}
+                labelStyle={{
+                  fontWeight: 600,
+                  marginBottom: 4,
+                  color: 'var(--text-primary)',
+                }}
+                itemStyle={{
+                  color: 'var(--text-primary)',
+                }}
+                formatter={(value: any) => (value == null ? '-' : String(value))}
+                labelFormatter={(label) => `Дата: ${label}`}
+              />
+              <Legend
+                verticalAlign="top"
+                height={60}
+                content={({ payload }) => (
+                  <ul className={styles['legend']}>
+                    {payload?.map((entry, index) => (
+                      <li key={`item-${index}`} className={styles['legend__item']}>
+                        <span
+                          className={styles['legend__item-text']}
+                          style={{
+                            backgroundColor: entry.color,
+                          }}
+                        />
+                        {entry.value}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              />
+              {active.map((col, idx) => (
+                <Line
+                  key={col}
+                  type="monotone"
+                  dataKey={col}
+                  name={col}
+                  stroke={COLORS[idx % COLORS.length]}
+                  strokeWidth={2}
+                  dot={{ r: 3 }}
+                  activeDot={{ r: 5 }}
+                  connectNulls={false}
+                  isAnimationActive={false}
+                />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
     </div>
   );
 };
