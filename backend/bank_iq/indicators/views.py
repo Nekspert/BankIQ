@@ -1,5 +1,7 @@
 import json
+from pathlib import Path
 
+from django.conf import settings
 from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiResponse
 from rest_framework import status
 from rest_framework.request import Request
@@ -316,7 +318,7 @@ class UniqueIndicatorsAPIView(APIView):
             description=(
                     "Возвращает список уникальных индикаторов (catalog) формы F101.\n\n"
                     "Данные загружаются из локального JSON-файла "
-                    "`bank_iq/api_payloads/unique_indicators_clean.json`.\n\n"
+                    "`api_payloads/unique_indicators_clean.json`.\n\n"
                     "Структура ответа (200):\n\n"
                     "- `indicators` — массив объектов, каждый объект содержит поля:\n"
                     "  - `ind_code` (string) — код индикатора;\n"
@@ -351,7 +353,8 @@ class UniqueIndicatorsAPIView(APIView):
     )
     def get(self, request: Request, *args, **kwargs) -> Response:
         try:
-            with open('bank_iq/api_payloads/unique_indicators_clean.json', encoding='utf-8') as f:
+            path = Path(settings.BASE_DIR) / 'api_payloads' / 'unique_indicators_clean.json'
+            with open(path, encoding='utf-8') as f:
                 data = json.load(f)
         except json.JSONDecodeError:
             return Response({'message': 'Invalid JSON file'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

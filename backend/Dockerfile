@@ -6,6 +6,7 @@ COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
+COPY bank_iq/api_payloads ./api_payloads
 COPY bank_iq/accounts ./accounts
 COPY bank_iq/analytics ./analytics
 COPY bank_iq/bank_iq ./bank_iq
