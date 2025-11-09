@@ -79,7 +79,7 @@ class Form101Parser:
 
     @classmethod
     def get_indicator_data(cls, reg_number: int, ind_code: str,
-                           date_from: datetime, date_to: datetime) -> dict | dict[str, str]:
+                           date_from: datetime, date_to: datetime) -> list[dict] | dict[str, str]:
         """Получает данные для одного индикатора (IndCode)"""
         if cls._client is None:
             cls._ensure_client()
@@ -90,7 +90,7 @@ class Form101Parser:
                     DateFrom=date_from,
                     DateTo=date_to
             )
-            res = cls._parse_data101_resp(resp, reg_number)
+            res: list[dict] = cls._parse_data101_resp(resp, reg_number)
             if res is None:
                 logger.error(f'Ошибка при запросе к внешнему API ЦБ РФ: {res}')
                 return {'message': f'Ошибка внешнего API: {str(res)}'}
@@ -104,23 +104,25 @@ class Form101Parser:
             return {'message': f'Внутренняя ошибка: {str(e)}'}
 
     @staticmethod
-    def _parse_data101_resp(resp: Any, reg_number: int) -> dict | None:
+    def _parse_data101_resp(resp: Any, reg_number: int) -> list[dict] | None:
         try:
             resp_serial = serialize_object(resp)
             if '_value_1' in resp_serial and isinstance(resp_serial['_value_1'], dict) and '_value_1' in resp_serial[
                 '_value_1']:
                 raw_items = resp_serial['_value_1']['_value_1']
+                result: list[dict] = []
                 for item in raw_items:
                     if 'FDF' in item:
                         data = item['FDF']
-                        return dict(
+                        result.append(dict(
                                 bank_reg_number=str(reg_number),
                                 date=data.get('dt'),
                                 pln=data.get('pln', ''),
                                 ap=int(data.get('ap', 0)),
                                 vitg=float(data.get('vitg', 0)),
                                 iitg=float(data.get('iitg', 0))
-                        )
+                        ))
+                return result
             return None
         except Exception as e:
             logger.exception('Ошибка парсинга Data101Form: %s', e)
@@ -182,10 +184,7 @@ class Form101Parser:
                 if meta:
                     result.append({
                         'name': meta.get('name'),
-                        'ind_code': ind_code,
-                        'ind_id': meta.get('IndID'),
-                        'ind_type': meta.get('IndType'),
-                        'ind_chapter': meta.get('IndChapter'),
+                        'ind_code': ind_code
                     })
             return {'indicators': result}
         return master

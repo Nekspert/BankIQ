@@ -11,19 +11,21 @@ from rest_framework.views import APIView
 from core.parsers.soap.all_banks_parser import CbrAllBanksParser
 from core.parsers.soap.form101_parser import Form101Parser
 from .serializers import AllBanksSerializer, BankIndicatorDataSerializer, BankIndicatorRequestSerializer, \
-    DateTimesSerializer, IndicatorsSerializer, \
-    RegNumAndDatetimeSerializer, \
-    RegNumberSerializer, UniqueIndicatorsSerializer
+    DateTimesSerializer, IndicatorsSerializer, RegNumAndDatetimeSerializer, RegNumberSerializer
 
 
 class AllBanksAPIView(APIView):
     @extend_schema(
             summary="Список всех банков (справочник BIC) от ЦБ РФ",
             description=(
-                    "Эндпоинт возвращает список всех банков, доступных через SOAP-сервис ЦБ РФ (метод EnumBIC_XML). "
-                    "Возвращаемая структура: объект с полем `banks`, содержащим массив банков."
-                    "Каждая запись банка содержит фиксированный набор полей: "
-                    "`bic`, `name`, `reg_number`, `internal_code`, `registration_date`, `region_code`, `tax_id`."
+                    "Возвращает справочник банков, получаемый из SOAP-сервиса ЦБ РФ (метод EnumBIC_XML).\n\n"
+                    "Каждая запись в поле `banks` содержит основную справочную информацию об организации.\n\n"
+                    "Примечания по полям:\n"
+                    "- `bic` — банковский идентификатор (строка, обязателен).\n"
+                    "- `reg_number` — регистрационный номер в базе ЦБ (строка).\n"
+                    "- `registration_date` — дата регистрации; может содержать смещение часового пояса.\n\n"
+                    "Возвращаемый код: 200 — OK; 422 — ошибка при обращении к внешнему SOAP-сервису или внутренняя "
+                    "ошибка парсера."
             ),
             responses={
                 200: OpenApiResponse(
@@ -86,10 +88,11 @@ class DatetimesAPIView(APIView):
     @extend_schema(
             summary="Список доступных дат формы F101 для банка",
             description=(
-                    "Возвращает список дат (меток времени), для которых у банка доступна "
-                    "форма F101 в сервисе ЦБ РФ. Запрос — JSON объект с полем `reg_number`.\n\n"
-                    "Пример запроса: `{ \"reg_number\": 1481 }`. Ответ: `{ \"datetimes\": [\"YYYY-MM-DDTHH:MM:SSZ\", "
-                    "...] }`."
+                    "Возвращает список дат (меток времени), для которых у банка доступна форма F101 в сервисе ЦБ "
+                    "РФ.\n\n Входной параметр: JSON `{ \"reg_number\": <int> }`.\n\n"
+                    "Формат и часовой пояс: возвращаемые даты представлены в ISO-8601.\n"
+                    "Если используется aware-datetime, в ответе они будут конвертированы в UTC (Z).\n\n"
+                    "Пример запроса: `{ \"reg_number\": 1481 }`.\n"
             ),
             request=RegNumberSerializer,
             responses={
@@ -150,10 +153,13 @@ class IndicatorsAPIView(APIView):
             summary="Список доступных индикаторов формы F101 для банка",
             description=(
                     "Возвращает список индикаторов (показателей) формы F101, которые реально заполнены "
-                    "для заданного банка на указанную дату. Запрос — JSON-объект с двумя полями:\n\n"
-                    "- `reg_number` (integer) — регистрационный номер банка в БД ЦБ РФ;\n"
-                    "- `dt` (datetime) — метка даты (ISO-8601) для получения формы F101.\n\n"
-                    "Если парсер вернул ошибку — возвращается статус 422 и объект `{'message': '...'}'."
+                    "для заданного банка на указанную дату.\n\n"
+                    "Входные поля (JSON):\n"
+                    "- `reg_number` (integer) — регистрационный номер банка в БД ЦБ РФ.\n"
+                    "- `dt` (datetime, ISO-8601) — метка даты для которой требуется список индикаторов.\n\n"
+                    "Возвращаемая структура: `{ \"indicators\": [ { \"name\": ..., \"ind_code\": ... }, ... ] }`.\n"
+                    "Примечание: `dt` в запросе обрабатывается как naive datetime — если был передан timezone-aware, "
+                    "смещение будет отброшено при обработке."
             ),
             examples=[OpenApiExample(
                     name="Пример запроса",
@@ -174,20 +180,8 @@ class IndicatorsAPIView(APIView):
                                     name="Успешный ответ — пример",
                                     value={
                                         "indicators": [
-                                            {
-                                                "name": "Депозиты Федерального казначейства",
-                                                "ind_code": "410",
-                                                "ind_id": 410,
-                                                "ind_type": "1",
-                                                "ind_chapter": "A"
-                                            },
-                                            {
-                                                "name": "Обязательства по поставке денежных средств",
-                                                "ind_code": "963",
-                                                "ind_id": 1593,
-                                                "ind_type": "1",
-                                                "ind_chapter": "Г"
-                                            }
+                                            {"name": "Депозиты Федерального казначейства", "ind_code": "410"},
+                                            {"name": "Обязательства по поставке денежных средств", "ind_code": "963"}
                                         ]
                                     }
                             )
@@ -205,14 +199,10 @@ class IndicatorsAPIView(APIView):
                 422: OpenApiResponse(
                         description="Ошибка получения данных от внешнего SOAP-сервиса или внутренняя ошибка парсера.",
                         examples=[
-                            OpenApiExample(
-                                    name="Ошибка внешнего API",
-                                    value={"message": "Ошибка внешнего API: <описание ошибки>"}
-                            ),
-                            OpenApiExample(
-                                    name="Внутренняя ошибка",
-                                    value={"message": "Внутренняя ошибка: <описание ошибки>"}
-                            ),
+                            OpenApiExample(name="Ошибка внешнего API",
+                                           value={"message": "Ошибка внешнего API: <описание ошибки>"}),
+                            OpenApiExample(name="Внутренняя ошибка",
+                                           value={"message": "Внутренняя ошибка: <описание ошибки>"}),
                         ],
                 ),
             },
@@ -236,26 +226,22 @@ class BankIndicatorAPIView(APIView):
             summary="Данные одного индикатора формы F101 для банка",
             description=(
                     "Возвращает значения указанного индикатора (IndCode) для банка в заданном диапазоне дат.\n\n"
-                    "Принимаемые параметры (JSON, request body):\n\n"
-                    "- `reg_number` (integer) — регистрационный номер банка (целое положительное число). "
-                    "Используется для идентификации кредитной организации в базе ЦБ РФ.\n\n"
-                    "- `ind_code` (string) — код индикатора (numsc / IndCode). Строковое значение, по которому "
-                    "парсер ищет конкретный показатель в форме F101.\n\n"
-                    "- `date_from` (datetime) — начало периода (ISO-8601). Дата/время (строка в ISO-формате), "
-                    "определяющая нижнюю границу интервала выборки (парсер ожидает naive datetime — tzinfo отбрасывается).\n\n"
-                    "- `date_to` (datetime) — конец периода (ISO-8601). Дата/время (строка в ISO-формате), "
-                    "определяющая верхнюю границу интервала выборки (парсер ожидает naive datetime — tzinfo отбрасывается).\n\n"
-                    "Возвращаемые поля (200 OK, JSON):\n\n"
-                    "- `bank_reg_number` (string) — регистрационный номер банка (тот же, что в запросе), используется для "
-                    "связи данных с организацией.\n\n"
-                    "- `date` (datetime) — дата записи (поле dt из F101) в формате ISO 8601 — дата, к которой привязано "
-                    "значение индикатора.\n\n"
-                    "- `pln` (string) — раздел формы (например, 'А', 'Б', 'В', 'Г') — указывает на раздел баланса, "
-                    "где находится индикатор.\n\n"
-                    "- `ap` (integer: 1 или 2) — сторона/тип показателя: 1 — актив, 2 — пассив (ChoiceField в "
-                    "сериализаторе).\n\n"
-                    "- `vitg` (float) — входящий итог (vitg) — значение на начало периода / входящая сумма.\n\n"
-                    "- `iitg` (float) — исходящий итог (iitg) — значение на конец периода / итоговое значение.\n\n"
+                    "Входные параметры (JSON, request body):\n"
+                    "- `reg_number` (integer) — регистрационный номер банка.\n"
+                    "- `ind_code` (string) — код индикатора (numsc / IndCode).\n"
+                    "- `date_from` (datetime, ISO-8601) — начало диапазона (включительно).\n"
+                    "- `date_to` (datetime, ISO-8601) — конец диапазона (включительно).\n\n"
+                    "Формат дат: ожидается naive datetime в теле запроса.\n\n"
+                    "Возвращаемые поля (в каждом элементе массива):\n"
+                    "- `bank_reg_number` (string) — регистрационный номер банка.\n"
+                    "- `date` (datetime) — дата записи (поле dt/DT в исходной форме F101).\n"
+                    "    - Описание `date`: это отчетная дата — обычно первый день месяца.\n"
+                    "- `pln` (string) — глава плана счетов:\n"
+                    "    - 'А' — балансовые счета; 'Б' — счета доверительного управления; 'В' — внебалансовые счета; "
+                    "'Г' — срочные операции; 'Д' — счета Депо.\n"
+                    "- `ap` (integer) — признак стороны: 1 — актив (A_P = '1'), 2 — пассив (A_P = '2').\n"
+                    "- `vitg` (float) — входящие остатки (VITG) — итого, тыс. руб.\n"
+                    "- `iitg` (float) — исходящие остатки (IITG) — итого, тыс. руб.\n\n"
             ),
             request=BankIndicatorRequestSerializer,
             examples=[
@@ -275,13 +261,8 @@ class BankIndicatorAPIView(APIView):
                 200: OpenApiResponse(
                         response=BankIndicatorDataSerializer,
                         description=(
-                                "Успешный ответ — объект с данными индикатора:\n\n"
-                                "- `bank_reg_number` (string)\n"
-                                "- `date` (datetime)\n"
-                                "- `pln` (string)\n"
-                                "- `ap` (1 или 2)\n"
-                                "- `vitg` (float)\n"
-                                "- `iitg` (float)\n"
+                                "Успешный ответ — массив объектов с данными индикатора "
+                                "(каждый объект — один момент/запись)."
                         )
                 ),
                 400: OpenApiResponse(
@@ -304,11 +285,11 @@ class BankIndicatorAPIView(APIView):
         date_from = in_serializer.validated_data['date_from']
         date_to = in_serializer.validated_data['date_to']
 
-        data = Form101Parser.get_indicator_data(reg_number, ind_code, date_from, date_to)
+        data: list[dict] = Form101Parser.get_indicator_data(reg_number, ind_code, date_from, date_to)
         if 'message' in data:
             return Response(data, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
-        out_serializer = BankIndicatorDataSerializer(instance=data)
+        out_serializer = BankIndicatorDataSerializer(instance=data, many=True)
         return Response(out_serializer.data, status=status.HTTP_200_OK)
 
 
@@ -317,17 +298,13 @@ class UniqueIndicatorsAPIView(APIView):
             summary="Список уникальных индикаторов формы F101",
             description=(
                     "Возвращает список уникальных индикаторов (catalog) формы F101.\n\n"
-                    "Данные загружаются из локального JSON-файла "
-                    "`api_payloads/unique_indicators_clean.json`.\n\n"
-                    "Структура ответа (200):\n\n"
-                    "- `indicators` — массив объектов, каждый объект содержит поля:\n"
-                    "  - `ind_code` (string) — код индикатора;\n"
-                    "  - `name` (string) — читабельное название индикатора.\n\n"
+                    "Данные загружаются из локального JSON-файла `api_payloads/unique_indicators_clean.json`.\n\n"
+                    "Структура ответа (200): `{ \"indicators\": [ { \"ind_code\": ..., \"name\": ... }, ... ] }`.\n\n"
                     "Если файл невалиден или при чтении произошла ошибка — возвращается статус 500 с описанием."
             ),
             responses={
                 200: OpenApiResponse(
-                        response=UniqueIndicatorsSerializer,
+                        response=IndicatorsSerializer,
                         description="Успешный ответ — объект с полем `indicators` (список индикаторов).",
                         examples=[
                             OpenApiExample(
@@ -361,5 +338,5 @@ class UniqueIndicatorsAPIView(APIView):
         except Exception as e:
             return Response({'message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        out_serializer = UniqueIndicatorsSerializer(instance=data)
+        out_serializer = IndicatorsSerializer(instance=data)
         return Response(out_serializer.data, status=status.HTTP_200_OK)
