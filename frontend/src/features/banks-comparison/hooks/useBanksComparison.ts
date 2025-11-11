@@ -10,130 +10,193 @@ import type { Indicator } from '../../settings-modal/types';
 import { dateToYYYYMM, monthToDate } from '../helpers';
 import { getPrevMonth } from '../utils/getPrevMonth';
 
+/**
+ * Кастомный хук для управления логикой сравнения банков и показателей.
+ * Сохраняет выбранные банки и индикаторы, управляет диапазоном дат и запросами данных.
+ *
+ * @hook
+ * @returns {{
+ *  allBanks: BankIndicator[] | undefined;
+ *  selectedBanks: BankIndicator[];
+ *  selectedIndicators: Indicator[];
+ *  indicatorData: any;
+ *  rawResults: any;
+ *  isModalOpen: boolean;
+ *  setIsModalOpen: (open: boolean) => void;
+ *  isSettingsOpen: boolean;
+ *  setIsSettingsOpen: (open: boolean) => void;
+ *  handleAddBanks: (banks: BankIndicator[]) => void;
+ *  handleRemoveBank: (bic: string) => void;
+ *  fromMonth: string | null;
+ *  toMonth: string | null;
+ *  setFromMonth: (month: string | null) => void;
+ *  setToMonth: (month: string | null) => void;
+ *  showDynamics: boolean;
+ *  setShowDynamics: (val: boolean) => void;
+ *  effectiveFrom: Date | null;
+ *  effectiveTo: Date | null;
+ *  indCodeCounts: Record<string, number>;
+ *  formatNumber: (value: number | null | undefined) => string;
+ * }}
+ *
+ * @see {@link useGetAllBanks} — Получает список всех банков.
+ * @see {@link useIndicatorQueries} — Запрашивает данные по выбранным банкам и показателям.
+ * @see {@link useLocalStorage} — Хранит пользовательские настройки и выбор.
+ * @see {@link useDebounce} — Снижает частоту обновления дат при вводе.
+ * @see {@link getMonthRange} — Преобразует месяцы в диапазон дат.
+ * @see {@link getPrevMonth} — Возвращает предыдущий месяц для диапазона по умолчанию.
+ *
+ * @example
+ * ```tsx
+ * const {
+ *   selectedBanks,
+ *   selectedIndicators,
+ *   handleAddBanks,
+ *   indicatorData,
+ * } = useBanksComparison();
+ * ```
+ */
 export const useBanksComparison = () => {
-  const { data: allBanksData } = useGetAllBanks();
-  const allBanks = allBanksData?.banks;
+    const { data: allBanksData } = useGetAllBanks();
+    const allBanks = allBanksData?.banks;
 
-  const [selectedBanks, setSelectedBanks] = useLocalStorage<BankIndicator[]>(
-    'banks-list',
-    []
-  );
-  const [selectedIndicators, setSelectedIndicators] = useLocalStorage<
-    Indicator[]
-  >('selected-indicators', BANK_TOP_INDICATORS);
+    /** @hook useLocalStorage — Список выбранных банков */
+    const [selectedBanks, setSelectedBanks] = useLocalStorage<BankIndicator[]>(
+        'banks-list',
+        []
+    );
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    /** @hook useLocalStorage — Список выбранных показателей */
+    const [selectedIndicators, setSelectedIndicators] = useLocalStorage<
+        Indicator[]
+    >('selected-indicators', BANK_TOP_INDICATORS);
 
-  const today = new Date();
-  const defaultToMonth = dateToYYYYMM(today);
-  const prev = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-  const defaultFromMonth = dateToYYYYMM(prev);
+    /** @hook useState — Состояния модальных окон */
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-  const [fromMonth, setFromMonth] = useLocalStorage<string | null>(
-    'banks-from-month',
-    defaultFromMonth
-  );
-  const [toMonth, setToMonth] = useLocalStorage<string | null>(
-    'banks-to-month',
-    defaultToMonth
-  );
+    /** @description Дефолтные месяцы для фильтрации диапазона */
+    const today = new Date();
+    const defaultToMonth = dateToYYYYMM(today);
+    const prev = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    const defaultFromMonth = dateToYYYYMM(prev);
 
-  const [showDynamics, setShowDynamics] = useLocalStorage<boolean>(
-    'banks-show-dynamics',
-    true
-  );
+    /** @hook useLocalStorage — Диапазон месяцев для отображения данных */
+    const [fromMonth, setFromMonth] = useLocalStorage<string | null>(
+        'banks-from-month',
+        defaultFromMonth
+    );
+    const [toMonth, setToMonth] = useLocalStorage<string | null>(
+        'banks-to-month',
+        defaultToMonth
+    );
 
-  const debouncedFrom = useDebounce(fromMonth, 350);
-  const debouncedTo = useDebounce(toMonth, 350);
+    /** @hook useLocalStorage — Флаг отображения динамики */
+    const [showDynamics, setShowDynamics] = useLocalStorage<boolean>(
+        'banks-show-dynamics',
+        true
+    );
 
-  useEffect(() => {
-    if (toMonth) {
-      const parsedTo = monthToDate(toMonth);
-      if (parsedTo && parsedTo > today) {
-        setToMonth(defaultToMonth);
-      }
-    } else setToMonth(defaultToMonth);
+    /** @hook useDebounce — Оптимизация обновления периода */
+    const debouncedFrom = useDebounce(fromMonth, 350);
+    const debouncedTo = useDebounce(toMonth, 350);
 
-    if (!fromMonth) {
-      setFromMonth(defaultFromMonth);
-    }
-    if (fromMonth && toMonth) {
-      const pFrom = monthToDate(fromMonth);
-      const pTo = monthToDate(toMonth);
-      if (pFrom && pTo && pFrom > pTo) {
-        setFromMonth(toMonth);
-      }
-    }
-  }, [fromMonth, toMonth]);
+    /** Проверка корректности выбранных месяцев */
+    useEffect(() => {
+        if (toMonth) {
+            const parsedTo = monthToDate(toMonth);
+            if (parsedTo && parsedTo > today) {
+                setToMonth(defaultToMonth);
+            }
+        } else setToMonth(defaultToMonth);
 
-  const { from: dateFrom } = useMemo(
-    () => getMonthRange(showDynamics ? debouncedFrom : null),
-    [showDynamics, debouncedFrom]
-  );
-  const { to: dateTo } = useMemo(
-    () => getMonthRange(debouncedTo),
-    [debouncedTo]
-  );
+        if (!fromMonth) {
+            setFromMonth(defaultFromMonth);
+        }
+        if (fromMonth && toMonth) {
+            const pFrom = monthToDate(fromMonth);
+            const pTo = monthToDate(toMonth);
+            if (pFrom && pTo && pFrom > pTo) {
+                setFromMonth(toMonth);
+            }
+        }
+    }, [fromMonth, toMonth]);
 
-  const { indicatorData, rawResults } = useIndicatorQueries(
-    selectedBanks,
-    selectedIndicators,
-    dateFrom ?? getPrevMonth(new Date(dateTo || new Date())),
-    dateTo ?? null
+    /** @hook useMemo — Рассчитывает реальные даты для фильтрации */
+    const { from: dateFrom } = useMemo(
+        () => getMonthRange(showDynamics ? debouncedFrom : null),
+        [showDynamics, debouncedFrom]
+    );
+    const { to: dateTo } = useMemo(
+        () => getMonthRange(debouncedTo),
+        [debouncedTo]
+    );
+
+    /** @hook useIndicatorQueries — Загружает данные индикаторов по выбранным банкам */
+    const { indicatorData, rawResults } = useIndicatorQueries(
+        selectedBanks,
+        selectedIndicators,
+        dateFrom ?? getPrevMonth(new Date(dateTo || new Date())),
+        dateTo ?? null
     // fromMonth ? getMonthStartDate(fromMonth) : null,
     // toMonth ? getMonthEndDate(toMonth) : null
-  );
+    );
 
-  const handleAddBanks = (banks: BankIndicator[]) =>
-    setSelectedBanks((prev) => [...(prev || []), ...banks]);
-  const handleRemoveBank = (bic: string) =>
-    setSelectedBanks((prev) => prev?.filter((b) => b.bic !== bic));
+    /** Добавляет новые банки в список */
+    const handleAddBanks = (banks: BankIndicator[]) =>
+        setSelectedBanks((prev) => [...(prev || []), ...banks]);
 
-  useEffect(() => {
-    if (allBanks && selectedBanks.length === 0) {
-      const defaults = allBanks.filter((b) =>
-        DEFAULT_BANKS_REGS.includes(b.reg_number)
-      );
-      if (defaults.length) setSelectedBanks(defaults);
-    }
-  }, [allBanks, selectedBanks.length, setSelectedBanks]);
+    /** Удаляет банк по BIC */
+    const handleRemoveBank = (bic: string) =>
+        setSelectedBanks((prev) => prev?.filter((b) => b.bic !== bic));
 
-  const indCodeCounts = useMemo(
-    () =>
-      selectedIndicators.reduce<Record<string, number>>((acc, ind) => {
-        acc[ind.ind_code] = (acc[ind.ind_code] || 0) + 1;
-        return acc;
-      }, {}),
-    [selectedIndicators]
-  );
+    /** Автоматически добавляет дефолтные банки при первой загрузке */
+    useEffect(() => {
+        if (allBanks && selectedBanks.length === 0) {
+            const defaults = allBanks.filter((b) =>
+                DEFAULT_BANKS_REGS.includes(b.reg_number)
+            );
+            if (defaults.length) setSelectedBanks(defaults);
+        }
+    }, [allBanks, selectedBanks.length, setSelectedBanks]);
 
-  const formatNumber = (value: number | null | undefined) =>
-    value != null ? new Intl.NumberFormat('ru-RU').format(value) : '—';
+    /** @hook useMemo — Подсчёт количества одинаковых индикаторов */
+    const indCodeCounts = useMemo(
+        () =>
+            selectedIndicators.reduce<Record<string, number>>((acc, ind) => {
+                acc[ind.ind_code] = (acc[ind.ind_code] || 0) + 1;
+                return acc;
+            }, {}),
+        [selectedIndicators]
+    );
 
-  return {
-    allBanks,
-    selectedBanks,
-    selectedIndicators,
-    indicatorData,
-    rawResults,
-    isModalOpen,
-    setIsModalOpen,
-    isSettingsOpen,
-    setIsSettingsOpen,
-    setSelectedBanks,
-    setSelectedIndicators,
-    handleAddBanks,
-    handleRemoveBank,
-    indCodeCounts,
-    formatNumber,
-    fromMonth,
-    toMonth,
-    setFromMonth,
-    setToMonth,
-    showDynamics,
-    setShowDynamics,
-    effectiveFrom: dateFrom ?? null,
-    effectiveTo: dateTo ?? null,
-  };
+    /** Форматирует числовые значения с разделителями тысяч */
+    const formatNumber = (value: number | null | undefined) =>
+        value != null ? new Intl.NumberFormat('ru-RU').format(value) : '—';
+
+    return {
+        allBanks,
+        selectedBanks,
+        selectedIndicators,
+        indicatorData,
+        rawResults,
+        isModalOpen,
+        setIsModalOpen,
+        isSettingsOpen,
+        setIsSettingsOpen,
+        setSelectedBanks,
+        setSelectedIndicators,
+        handleAddBanks,
+        handleRemoveBank,
+        indCodeCounts,
+        formatNumber,
+        fromMonth,
+        toMonth,
+        setFromMonth,
+        setToMonth,
+        showDynamics,
+        setShowDynamics,
+        effectiveFrom: dateFrom ?? null,
+        effectiveTo: dateTo ?? null,
+    };
 };
