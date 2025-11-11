@@ -11,7 +11,34 @@ import { formatNumber } from './utils/format';
 import MonthPicker from '@/shared/ui/month-picker/MonthPicker';
 import ToggleSwitch from '@/shared/ui/toggle-switch/ToggleSwitch';
 import type { CSSProperties } from 'react';
-
+/**
+ * Компонент **BanksComparison** — основной экран для сравнения финансовых показателей банков.
+ *
+ * Отображает таблицу с динамикой индикаторов по выбранным банкам за выбранные месяцы.
+ * Позволяет:
+ * - Добавлять и удалять банки для сравнения;
+ * - Выбирать периоды "От" и "На дату";
+ * - Переключать режим отображения динамики;
+ * - Открывать настройки для выбора показателей и банков.
+ *
+ * Использует хук `useBanksComparison` для управления состоянием, выбором дат и загрузкой данных.
+ * При отсутствии данных отображает компонент-загрузчик `TableLoader`.
+ *
+ * Внутри применяются:
+ * - `AddBankModal` — модальное окно добавления банков;
+ * - `SettingsModal` — окно выбора показателей;
+ * - `MonthPicker`, `ToggleSwitch` — элементы управления диапазоном дат;
+ * - `Button`, `Title`, `Section` — общие UI-компоненты.
+ *
+ * @component
+ * @returns {JSX.Element} Таблица сравнения банков с панелью фильтров и контролами периода.
+ *
+ * @see {@link useBanksComparison} — управляет состоянием банков, дат и индикаторов.
+ * @see {@link AddBankModal} — добавление новых банков в сравнение.
+ * @see {@link SettingsModal} — выбор индикаторов и банков.
+ * @see {@link TableLoader} — отображается при загрузке данных.
+ * @see {@link formatNumber} — форматирует числовые значения показателей.
+ */
 export const BanksComparison = () => {
   const {
     allBanks,
