@@ -13,6 +13,39 @@ interface Option {
   label: string;
 }
 
+/**
+ * Хук для управления фильтром диапазона годов (например, "от" и "до").
+ * Обеспечивает выбор, валидацию и применение диапазона годов с контролем ошибок.
+ *
+ * @param initialFromYear - Начальный год диапазона (по умолчанию выбран при инициализации)
+ * @param initialToYear - Конечный год диапазона (по умолчанию выбран при инициализации)
+ * @param minYear - Минимально допустимый год
+ * @param maxYear - Максимально допустимый год (по умолчанию — текущий)
+ * @param onApply - Колбэк, вызываемый при успешном применении диапазона годов
+ *
+ * @returns Объект со всеми состояниями и методами управления:
+ * - `fromYear`, `toYear` — выбранные значения годов
+ * - `setFromYear`, `setToYear` — функции изменения годов
+ * - `error` — текст ошибки валидации (если есть)
+ * - `years` — все доступные года для выбора
+ * - `availableFromYears`, `availableToYears` — отфильтрованные значения годов с учётом диапазона
+ * - `validateAndApply` — проверяет введённые значения и вызывает `onApply`, если данные корректны
+ * - `handleKeyPress` — обработчик клавиши Enter для подтверждения выбора
+ *
+ * @example
+ * const {
+ *   fromYear, toYear, setFromYear, setToYear, validateAndApply, error
+ * } = useDateRangeFilter({
+ *   initialFromYear: 2015,
+ *   initialToYear: 2024,
+ *   minYear: 2000,
+ *   onApply: (from, to) => console.log(from, to),
+ * });
+ *
+ * @see React.useState - хранение состояний годов и ошибок
+ * @see React.useMemo - вычисление списков годов и фильтров
+ * @see React.useEffect - синхронизация значений при изменении входных параметров
+ */
 export const useDateRangeFilter = ({
   initialFromYear,
   initialToYear,

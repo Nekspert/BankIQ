@@ -3,6 +3,40 @@ import type { SideMenuProps } from './types';
 import styles from './styles.module.scss';
 import classNames from 'classnames';
 import Button from '@/shared/ui/button/Button';
+/**
+ * Боковое меню навигации по разделам (графикам) страницы.
+ *
+ * Отображает список ссылок на таблицы или графики с возможностью плавной прокрутки
+ * к соответствующим элементам. Реализует закрытие при клике вне области меню
+ * или нажатии клавиши Escape.
+ *
+ * Используется, например, на страницах аналитики для быстрого перехода
+ * между секциями с показателями банков.
+ *
+ * @component
+ * @param {SideMenuProps} props - Свойства компонента.
+ * @param {{ id: string; title: string }[]} props.tableList - Список ссылок для навигации (id элемента и заголовок).
+ * @param {boolean} props.isOpen - Флаг отображения меню.
+ * @param {string} [props.activeId] - Идентификатор активной секции (подсвечивается в меню).
+ * @param {(id: string) => void} [props.onLinkClick] - Callback при нажатии на пункт меню.
+ * @param {() => void} [props.handleClose] - Обработчик закрытия меню.
+ *
+ * @returns {JSX.Element} Компонент бокового меню с навигацией и кнопкой закрытия.
+ *
+ * @example
+ * ```tsx
+ * <SideMenu
+ *   tableList={[
+ *     { id: 'profit', title: 'Прибыль' },
+ *     { id: 'assets', title: 'Активы' },
+ *   ]}
+ *   isOpen={isMenuOpen}
+ *   activeId="profit"
+ *   onLinkClick={(id) => console.log(`Переход к секции: ${id}`)}
+ *   handleClose={() => setMenuOpen(false)}
+ * />
+ * ```
+ */
 
 export const SideMenu: FC<SideMenuProps> = ({
   tableList,

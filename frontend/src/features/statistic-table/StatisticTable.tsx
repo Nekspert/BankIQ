@@ -14,6 +14,41 @@ import { useDateRange } from './hooks/useDateRange';
 import { Section } from '@/shared/ui/section/Section';
 import { Title } from '@/shared/ui/title/Title';
 import { Button } from '@/shared/ui/button/Button';
+/**
+ * Компонент отображения статистической таблицы с возможностью фильтра по дате и графиком.
+ *
+ * Использует хуки {@link useTableData}, {@link useTableColumns}, {@link useExpandableTable} и {@link useDateRange}
+ * для управления состоянием таблицы, колонок и диапазона дат. Поддерживает разворачивание таблицы,
+ * отображение выбранных показателей и визуализацию динамики через {@link StatisticChart}.
+ *
+ * @component
+ * @param {StatisticTableProps} props - Свойства компонента.
+ * @param {object} props.requestData - Начальные параметры запроса статистики.
+ * @param {string[]} [props.externalSelectedColumns] - Внешне выбранные колонки для отображения.
+ * @param {(columns: string[]) => void} [props.onColumnsReady] - Callback при готовности колонок.
+ * @param {string} props.endpoint - API-эндпоинт для запроса статистики.
+ * @param {number} props.minYear - Минимальный год для фильтра по дате.
+ *
+ * @returns {JSX.Element} Компонент с таблицей статистики, фильтром по дате и графиком динамики показателей.
+ *
+ * @example
+ * ```tsx
+ * <StatisticTable
+ *   requestData={{ from_year: 2015, to_year: 2024 }}
+ *   externalSelectedColumns={["ROE", "ROA"]}
+ *   onColumnsReady={(cols) => console.log("Все колонки:", cols)}
+ *   endpoint="/api/statistics"
+ *   minYear={2010}
+ * />
+ * ```
+ *
+ * @see useTableData
+ * @see useTableColumns
+ * @see useExpandableTable
+ * @see useDateRange
+ * @see StatisticChart
+ * @see DateRangeFilter
+ */
 
 export const StatisticTable: FC<StatisticTableProps> = memo(
   ({

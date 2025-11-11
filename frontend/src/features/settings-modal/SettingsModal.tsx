@@ -6,6 +6,42 @@ import type { BankIndicator } from '@/shared/api/indicatorsApi';
 import { useLocalStorage } from '@/shared/hooks/useLocalStorage';
 import type { Indicator, SettingsModalProps } from './types';
 import { useGetUniqueIndicators } from '@/shared/api/hooks/indicators/useGetUniqueIndicators';
+/**
+ * Модальное окно настройки таблицы сравнения банков и показателей.
+ *
+ * Позволяет пользователю выбирать банки и экономические показатели,
+ * а также менять их порядок и сохранять настройки. 
+ * Состояние выбора сохраняется в localStorage.
+ *
+ * Использует хук {@link useGetUniqueIndicators} для загрузки доступных показателей
+ * и {@link useLocalStorage} для сохранения выбранных значений между сессиями.
+ *
+ * @component
+ * @param {SettingsModalProps} props - Свойства компонента.
+ * @param {boolean} props.isOpen - Флаг открытия модального окна.
+ * @param {() => void} props.onClose - Обработчик закрытия окна.
+ * @param {BankIndicator[]} props.allBanks - Полный список доступных банков.
+ * @param {BankIndicator[]} props.selectedBanks - Текущий список выбранных банков.
+ * @param {Indicator[]} props.indicators - Текущий список выбранных показателей.
+ * @param {(banks: BankIndicator[], indicators: Indicator[]) => void} props.onSave - Callback, вызываемый при сохранении настроек.
+ *
+ * @returns {JSX.Element} Компонент модального окна с формой выбора банков и показателей.
+ *
+ * @example
+ * ```tsx
+ * <SettingsModal
+ *   isOpen={true}
+ *   onClose={() => setOpen(false)}
+ *   allBanks={banksList}
+ *   selectedBanks={selectedBanks}
+ *   indicators={indicators}
+ *   onSave={(banks, inds) => console.log('Сохранено:', banks, inds)}
+ * />
+ * ```
+ *
+ * @see useGetUniqueIndicators
+ * @see useLocalStorage
+ */
 
 const SettingsModal: FC<SettingsModalProps> = ({
   isOpen,
