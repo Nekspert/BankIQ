@@ -93,7 +93,7 @@ class CbrAllBanksParser:
         return {
             'bic': bank_data.get('BIC', ''),
             'name': bank_data.get('NM', ''),
-            'reg_number': bank_data.get('RN', ''),
+            'reg_number': int(bank_data.get('RN', 0)),
             'internal_code': bank_data.get('intCode', ''),
             'registration_date': bank_data.get('RC', ''),
             'region_code': bank_data.get('cregnr', ''),

@@ -13,13 +13,14 @@ import os
 from pathlib import Path
 
 import dj_database_url
-from dotenv import load_dotenv
+from environs import Env
 
+
+env = Env()
+env.read_env()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-load_dotenv(BASE_DIR / '.env')
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'test-secret-key')
@@ -44,8 +45,10 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_spectacular',
 
+    'core',
     'reports.apps.ReportsConfig',
     'indicators.apps.IndicatorsConfig',
+    'exports.apps.ExportsConfig',
 ]
 
 MIDDLEWARE = [
@@ -80,10 +83,15 @@ WSGI_APPLICATION = 'bank_iq.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASE_URL = os.getenv('DATABASE_URL', f'sqlite:///{BASE_DIR / "db.sqlite3"}')
-DATABASES = {
-    'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
-}
+DATABASE_URL = os.getenv('DATABASE_URL', f'postgres://postgres:1234@db:5432/bankiq')
+try:
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+    }
+except Exception:
+    DATABASES = {
+        'default': dj_database_url.parse(f'sqlite:///{BASE_DIR / "db.sqlite3"}')
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -112,7 +120,7 @@ TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
-USE_TZ = True
+USE_TZ = False
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
@@ -126,6 +134,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',  # Схема для автоматической генерации API-документации
+    'DEFAULT_AUTHENTICATION_CLASSES': [],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
 }
 
 # Настройки для drf-spectacular

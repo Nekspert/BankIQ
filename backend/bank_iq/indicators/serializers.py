@@ -10,7 +10,7 @@ class BankInfoSerializer(serializers.Serializer):
             required=True,
             help_text="Полное наименование кредитной организации."
     )
-    reg_number = serializers.CharField(
+    reg_number = serializers.IntegerField(
             required=True,
             help_text="Регистрационный номер организации в базе ЦБ РФ (строка). Пример: '1481'."
     )
