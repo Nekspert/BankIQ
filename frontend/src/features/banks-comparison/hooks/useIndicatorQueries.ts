@@ -22,13 +22,13 @@ export const useIndicatorQueries = (
         return {
           queryKey: ['indicator-data', reg, ind, dateFrom, dateTo],
           queryFn: async () => {
-            const { iitg, vitg } = await indicatorsApi.getIndicatorData({
+            const data = await indicatorsApi.getIndicatorData({
               reg_number: reg,
               ind_code: ind,
               date_from: dateFrom,
               date_to: dateTo,
             });
-            return { iitg, vitg };
+            return data;
           },
           enabled: true,
           staleTime: 1000 * 60 * 5,
@@ -43,7 +43,10 @@ export const useIndicatorQueries = (
   const results = useQueries({ queries });
 
   const indicatorData = useMemo(() => {
-    const out: Record<string, Record<string, { iitg: number | null; vitg: number | null }>> = {};
+    const out: Record<
+      string,
+      Record<string, { iitg: number | null; vitg: number | null }>
+    > = {};
 
     if (!results || results.length === 0) return out;
 
@@ -53,8 +56,7 @@ export const useIndicatorQueries = (
       for (const indicator of selectedIndicators) {
         if (idx >= results.length) break;
         const res = results[idx];
-        const value = res?.data ?? { iitg: null, vitg: null };
-
+        const value = { iitg: res?.data?.[0]?.iitg || null, vitg: res?.data?.[0]?.vitg || null }
         if (!out[reg]) out[reg] = {};
         out[reg][indicator.ind_code] = value;
 

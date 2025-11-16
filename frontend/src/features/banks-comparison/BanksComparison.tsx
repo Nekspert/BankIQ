@@ -154,6 +154,8 @@ export const BanksComparison = () => {
                         indicatorData[bank.reg_number]?.[code]?.iitg;
                       const startVal =
                         indicatorData[bank.reg_number]?.[code]?.vitg;
+                        console.log(indicatorData[bank.reg_number]?.[code])
+                        console.log(rawVal, startVal)
                       const delta = startVal
                         ? ((rawVal || 0) - (startVal || 0)) / (startVal || 1)
                         : null;

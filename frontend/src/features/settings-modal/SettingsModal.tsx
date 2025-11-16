@@ -15,7 +15,7 @@ const SettingsModal: FC<SettingsModalProps> = ({
   indicators,
   onSave,
 }) => {
-  const {data: DEFAULT_INDICATOR_OPTIONS} = useGetUniqueIndicators()
+  const { data: DEFAULT_INDICATOR_OPTIONS } = useGetUniqueIndicators();
 
   const [bankSearch, setBankSearch] = useState('');
   const [selectedForBanks, setSelectedForBanks] = useLocalStorage<
