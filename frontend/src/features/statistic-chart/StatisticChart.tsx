@@ -11,6 +11,28 @@ import {
 } from 'recharts';
 import styles from './styles.module.scss';
 import type { TableData } from '../statistic-table/types';
+/**
+ * Свойства компонента {@link StatisticChart}, отображающего график динамики показателей.
+ *
+ * Определяет структуру входных данных и список выбранных колонок для отображения.
+ *
+ * @interface ChartProps
+ * @property {TableData} data - Объект с данными, где ключ — дата, а значение — набор показателей.
+ * @property {string[]} columns - Все доступные колонки (показатели), доступные для отображения на графике.
+ * @property {string[]} [selectedColumns] - Необязательный список выбранных показателей для отрисовки (если не указано, берутся все).
+ *
+ * @example
+ * ```ts
+ * const props: ChartProps = {
+ *   data: {
+ *     "2023-01": { ROE: 10.5, ROA: 4.2 },
+ *     "2024-01": { ROE: 12.1, ROA: 4.8 },
+ *   },
+ *   columns: ["ROE", "ROA"],
+ *   selectedColumns: ["ROE"],
+ * };
+ * ```
+ */
 
 interface ChartProps {
   data: TableData;
@@ -30,6 +52,36 @@ const COLORS = [
   '#0EA5A4',
   '#E11D48',
 ];
+/**
+ * Компонент визуализации динамики показателей банков.
+ *
+ * Отображает интерактивный линейный график на основе данных таблицы {@link TableData}.
+ * Поддерживает множественный выбор показателей, адаптивную ширину и горизонтальную прокрутку.
+ * Использует библиотеку **Recharts**.
+ *
+ * @component
+ * @param {ChartProps} props - Свойства компонента.
+ * @param {TableData} props.data - Объект с данными, где ключ — дата, а значение — значения показателей.
+ * @param {string[]} props.columns - Все доступные колонки (показатели), которые могут быть отображены.
+ * @param {string[]} [props.selectedColumns] - Необязательный список выбранных для отображения колонок.
+ *
+ * @returns {JSX.Element | null} JSX-компонент с графиком показателей или сообщение, если данных нет.
+ *
+ * @example
+ * ```tsx
+ * <StatisticChart
+ *   data={{
+ *     "2020-01": { ROE: 12.3, ROA: 4.5 },
+ *     "2021-01": { ROE: 14.1, ROA: 5.2 },
+ *   }}
+ *   columns={["ROE", "ROA"]}
+ *   selectedColumns={["ROE"]}
+ * />
+ * ```
+ *
+ * @see TableData
+ * @see https://recharts.org/en-US/api/LineChart
+ */
 
 export const StatisticChart: React.FC<ChartProps> = ({
   data,

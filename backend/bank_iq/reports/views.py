@@ -4,26 +4,25 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from core.helpers.reports_db_functions import _create_or_get_request_atomic, _find_existing_request
 from core.parsers.rest.cbr_parser import CbrAPIParser
-from .serializers import (CheckRequestSerializer,
-                          CheckResponseSerializer,
-                          CheckYearsResponseSerializer,
-                          InterestRatesCreditSerializer,
-                          InterestRatesDepositSerializer,
-                          ResponseSerializer)
+from .models import CbrApiDataRequest, CbrApiDataResponse
+from .serializers import (CheckRequestSerializer, CheckResponseSerializer,
+                          CheckYearsResponseSerializer, InterestRatesCreditSerializer,
+                          InterestRatesDepositSerializer, ResponseSerializer)
 
 
 class CheckValidDataAPIView(APIView):
     @extend_schema(
             summary="Список публикаций / датасетов / разрезов / лет (проверка доступных параметров)",
             description=(
-                    "Эндпоинт для получения возможных значений для параметров запроса к API ЦБ: "
-                    "список публикаций, датасетов для указанной публикации, разрезов (measures) для указанного датасета"
-                    " и диапазон доступных лет для указанного датасета + разреза. "
-                    "Если не передавать параметры — вернётся список публикаций. "
-                    "Если передать только `publication_id` — вернутся датасеты для этой публикации. "
-                    "Если передать `publication_id` и `dataset_id` — вернутся `measures` для датасета. "
-                    "Если передать все три — вернётся диапазон лет (`FromYear`, `ToYear`)."
+                    'Эндпоинт для получения возможных значений для параметров запроса к API ЦБ: '
+                    'список публикаций, датасетов для указанной публикации, разрезов (measures) для указанного датасета'
+                    ' и диапазон доступных лет для указанного датасета + разреза. '
+                    'Если не передавать параметры — вернётся список публикаций. '
+                    'Если передать только `publication_id` — вернутся датасеты для этой публикации. '
+                    'Если передать `publication_id` и `dataset_id` — вернутся `measures` для датасета. '
+                    'Если передать все три — вернётся диапазон лет (`FromYear`, `ToYear`).'
             ),
             request=CheckRequestSerializer,
             responses={
@@ -110,32 +109,37 @@ class CheckValidDataAPIView(APIView):
         serializer.is_valid(raise_exception=True)
         params = serializer.validated_data
 
+        check_rate = CbrApiDataRequest.RateType.PARAMS_CHECK
+        existing = _find_existing_request(check_rate, params)
+        if existing and hasattr(existing, 'response'):
+            return Response(existing.response.processed_data, status=status.HTTP_200_OK)
+
         data = CbrAPIParser.check_available_params(
                 publication_id=params.get("publication_id"),
                 dataset_id=params.get("dataset_id"),
                 measure_id=params.get("measure_id"),
         )
-
         if "message" in data:
             return Response(data, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
         if "publication_ids" in data:
-            resp_ser = CheckResponseSerializer(instance=data["publication_ids"], many=True)
-            return Response(resp_ser.data, status=status.HTTP_200_OK)
+            processed = CheckResponseSerializer(instance=data["publication_ids"], many=True).data
+        elif "dataset_ids" in data:
+            processed = CheckResponseSerializer(instance=data["dataset_ids"], many=True).data
+        elif "measure_ids" in data:
+            processed = CheckResponseSerializer(instance=data["measure_ids"], many=True).data
+        elif "years" in data:
+            processed = CheckYearsResponseSerializer(instance={"years": data["years"]}).data
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
-        if "dataset_ids" in data:
-            resp_ser = CheckResponseSerializer(instance=data["dataset_ids"], many=True)
-            return Response(resp_ser.data, status=status.HTTP_200_OK)
+        req_obj = _create_or_get_request_atomic(check_rate, params)
 
-        if "measure_ids" in data:
-            resp_ser = CheckResponseSerializer(instance=data["measure_ids"], many=True)
-            return Response(resp_ser.data, status=status.HTTP_200_OK)
+        if hasattr(req_obj, 'response') and req_obj.response is not None:
+            return Response(req_obj.response.processed_data, status=status.HTTP_200_OK)
 
-        if "years" in data:
-            resp_ser = CheckYearsResponseSerializer(instance={"years": data["years"]})
-            return Response(resp_ser.data, status=status.HTTP_200_OK)
-
-        return Response(status=status.HTTP_404_NOT_FOUND)
+        CbrApiDataResponse.objects.create(request=req_obj, processed_data=processed)
+        return Response(processed, status=status.HTTP_200_OK)
 
 
 class InterestRatesCreditAPIView(APIView):
@@ -228,6 +232,11 @@ class InterestRatesCreditAPIView(APIView):
         serializer.is_valid(raise_exception=True)
         params = serializer.validated_data
 
+        rate = CbrApiDataRequest.RateType.CREDIT
+        existing = _find_existing_request(rate, params, with_years=True)
+        if existing and hasattr(existing, 'response'):
+            return Response(existing.response.processed_data, status=status.HTTP_200_OK)
+
         data = CbrAPIParser.parse(
                 publication_id=params.get("publication_id"),
                 dataset_id=params.get("dataset_id"),
@@ -239,8 +248,14 @@ class InterestRatesCreditAPIView(APIView):
         if "message" in data:
             return Response(data, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
-        response_serializer = ResponseSerializer(instance=data)
-        return Response(response_serializer.data, status=status.HTTP_200_OK)
+        processed = ResponseSerializer(instance=data).data
+        req_obj = _create_or_get_request_atomic(rate, params, with_years=True)
+
+        if hasattr(req_obj, 'response') and req_obj.response is not None:
+            return Response(req_obj.response.processed_data, status=status.HTTP_200_OK)
+
+        CbrApiDataResponse.objects.create(request=req_obj, processed_data=processed)
+        return Response(processed, status=status.HTTP_200_OK)
 
 
 class InterestRatesDepositAPIView(APIView):
@@ -310,15 +325,28 @@ class InterestRatesDepositAPIView(APIView):
         serializer.is_valid(raise_exception=True)
         params = serializer.validated_data
 
+        rate = CbrApiDataRequest.RateType.DEPOSIT
+
+        existing = _find_existing_request(rate, params, with_years=True)
+        if existing and hasattr(existing, 'response'):
+            return Response(existing.response.processed_data, status=status.HTTP_200_OK)
+
         data = CbrAPIParser.parse(
                 publication_id=params.get("publication_id"),
                 dataset_id=params.get("dataset_id"),
                 measure_id=params.get("measure_id"),
                 from_year=params.get("from_year"),
-                to_year=params.get("to_year"))
-
+                to_year=params.get("to_year"),
+        )
         if "message" in data:
             return Response(data, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
-        response_serializer = ResponseSerializer(instance=data)
-        return Response(response_serializer.data, status=status.HTTP_200_OK)
+        processed = ResponseSerializer(instance=data).data
+
+        req_obj = _create_or_get_request_atomic(rate, params, with_years=True)
+
+        if hasattr(req_obj, 'response') and req_obj.response is not None:
+            return Response(req_obj.response.processed_data, status=status.HTTP_200_OK)
+
+        CbrApiDataResponse.objects.create(request=req_obj, processed_data=processed)
+        return Response(processed, status=status.HTTP_200_OK)

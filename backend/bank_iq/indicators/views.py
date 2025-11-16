@@ -8,9 +8,13 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from core.parsers.soap.all_banks_parser import CbrAllBanksParser
+from core.helpers.indicators_db_functions import _create_banks_from_api, \
+    _create_or_get_bank_indicators_data_request_atomic, _create_or_get_datetimes_request_atomic, \
+    _create_or_get_indicators_request_atomic, _find_existing_bank_indicators_data_request, _find_existing_dates_request, \
+    _find_existing_indicators_request, _get_all_banks_from_db
 from core.parsers.soap.form101_parser import Form101Parser
 from core.parsers.soap.form123_parser import Form123Parser
+from .models import Bank, BankDatesResponse, BankIndicatorDataResponse, BankIndicatorsResponse, FormType
 from .serializers import AllBanksSerializer, BankIndicator101DataSerializer, BankIndicator101RequestSerializer, \
     BankIndicator123DataSerializer, DateTimesSerializer, Indicators101Serializer, Indicators123Serializer, \
     RegNumAndDatetimeSerializer, \
@@ -25,7 +29,7 @@ class AllBanksAPIView(APIView):
                     "Каждая запись в поле `banks` содержит основную справочную информацию об организации.\n\n"
                     "Примечания по полям:\n"
                     "- `bic` — банковский идентификатор (строка, обязателен).\n"
-                    "- `reg_number` — регистрационный номер в базе ЦБ (строка).\n"
+                    "- `reg_number` — регистрационный номер в базе ЦБ (число).\n"
                     "- `registration_date` — дата регистрации; может содержать смещение часового пояса.\n\n"
                     "Возвращаемый код: 200 — OK; 422 — ошибка при обращении к внешнему SOAP-сервису или внутренняя "
                     "ошибка парсера."
@@ -42,7 +46,7 @@ class AllBanksAPIView(APIView):
                                             {
                                                 "bic": "040173745",
                                                 "name": "СИБСОЦБАНК",
-                                                "reg_number": "2015",
+                                                "reg_number": 2015,
                                                 "internal_code": "10000012",
                                                 "registration_date": "1992-08-21T00:00:00+04:00",
                                                 "region_code": "1022200525819",
@@ -51,7 +55,7 @@ class AllBanksAPIView(APIView):
                                             {
                                                 "bic": "044525225",
                                                 "name": "ПАО СБЕРБАНК",
-                                                "reg_number": "1234",
+                                                "reg_number": 1234,
                                                 "internal_code": "20000001",
                                                 "registration_date": "1990-01-01T00:00:00+03:00",
                                                 "region_code": "7700000000000",
@@ -78,10 +82,12 @@ class AllBanksAPIView(APIView):
             }
     )
     def get(self, request: Request, *args, **kwargs) -> Response:
-        data = CbrAllBanksParser.parse()
+        data = _get_all_banks_from_db()
 
-        if 'message' in data:
-            return Response(data, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+        if data is None:
+            data = _create_banks_from_api()
+            if 'message' in data:
+                return Response(data, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
         out_serializer = AllBanksSerializer(instance=data)
         return Response(out_serializer.data, status=status.HTTP_200_OK)
@@ -98,41 +104,48 @@ class Datetimes101APIView(APIView):
                     "Пример запроса: `{ \"reg_number\": 1481 }`.\n"
             ),
             request=RegNumberSerializer,
+            examples=[
+                OpenApiExample(
+                        name="Пример запроса",
+                        value={'reg_number': 1481},
+                        media_type='application/json')
+            ],
             responses={
                 200: OpenApiResponse(
                         response=DateTimesSerializer,
-                        description="Успешный ответ — доступные даты формы F101.",
+                        description="Успешный ответ — доступные даты формы F101",
                         examples=[
                             OpenApiExample(
-                                    name="Успешный ответ — пример",
+                                    name="Пример успешного ответа",
                                     value={
                                         "datetimes": [
-                                            "2023-10-01T00:00:00+00:00",
-                                            "2023-11-01T00:00:00+00:00"
+                                            "2024-01-01T00:00:00Z",
+                                            "2024-02-01T00:00:00Z",
+                                            "2024-03-01T00:00:00Z"
                                         ]
                                     }
                             )
                         ]
                 ),
+                400: OpenApiResponse(
+                        description="Неверный запрос",
+                        examples=[
+                            OpenApiExample(
+                                    name="Ошибка валидации",
+                                    value={
+                                        "reg_number": ["Обязательное поле."]
+                                    }
+                            )
+                        ]
+                ),
                 422: OpenApiResponse(
-                        description="Ошибка получения данных от внешнего SOAP-сервиса или внутренняя ошибка.",
+                        description="Ошибка получения данных",
                         examples=[
                             OpenApiExample(
                                     name="Ошибка внешнего API",
-                                    value={"message": "Ошибка внешнего API: <описание ошибки>"}
-                            ),
-                            OpenApiExample(
-                                    name="Внутренняя ошибка",
-                                    value={"message": "Внутренняя ошибка: <описание ошибки>"}
-                            ),
-                        ]
-                ),
-                400: OpenApiResponse(
-                        description="Неверный запрос: тело не соответствует RegNumberSerializer.",
-                        examples=[
-                            OpenApiExample(
-                                    name="Пример ошибки валидации",
-                                    value={"reg_number": ["A valid integer is required."]}
+                                    value={
+                                        "message": "Ошибка внешнего API: Банк с указанным регистрационным номером не найден"
+                                    }
                             )
                         ]
                 )
@@ -141,14 +154,27 @@ class Datetimes101APIView(APIView):
     def post(self, request: Request, *args, **kwargs) -> Response:
         in_serializer = RegNumberSerializer(data=request.data)
         in_serializer.is_valid(raise_exception=True)
-        reg_number = in_serializer.validated_data['reg_number']
+        params = in_serializer.validated_data
 
-        data = Form101Parser.get_dates_for_f101(reg_number)
+        bank = Bank.objects.get(reg_number=params['reg_number'])
+        form_type = FormType.objects.get(title='F101')
+        existing = _find_existing_dates_request(bank, form_type, params)
+
+        if existing and hasattr(existing, 'response'):
+            return Response(existing.response.datetimes, status=status.HTTP_200_OK)
+
+        data = Form101Parser.get_dates_for_f101(params['reg_number'])
         if 'message' in data:
             return Response(data, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
-        out_serializer = DateTimesSerializer(instance=data)
-        return Response(out_serializer.data, status=status.HTTP_200_OK)
+        processed_data = DateTimesSerializer(instance=data).data
+        req_obj = _create_or_get_datetimes_request_atomic(bank, form_type, params)
+
+        if hasattr(req_obj, 'response') and req_obj.response is not None:
+            return Response(req_obj.response.datetimes, status=status.HTTP_200_OK)
+
+        BankDatesResponse.objects.create(request=req_obj, datetimes=processed_data)
+        return Response(processed_data, status=status.HTTP_200_OK)
 
 
 class Indicators101APIView(APIView):
@@ -177,18 +203,28 @@ class Indicators101APIView(APIView):
             responses={
                 200: OpenApiResponse(
                         response=Indicators101Serializer,
-                        description="Успешный ответ — объект с полем `indicators` (список индикаторов).",
+                        description="Успешный ответ — список доступных индикаторов",
                         examples=[
                             OpenApiExample(
-                                    name="Успешный ответ — пример",
+                                    name="Пример успешного ответа",
                                     value={
                                         "indicators": [
-                                            {"name": "Депозиты Федерального казначейства", "ind_code": "410"},
-                                            {"name": "Обязательства по поставке денежных средств", "ind_code": "963"}
+                                            {
+                                                "name": "Депозиты Федерального казначейства",
+                                                "ind_code": "410"
+                                            },
+                                            {
+                                                "name": "Корреспондентские счета",
+                                                "ind_code": "301"
+                                            },
+                                            {
+                                                "name": "Средства бюджетов субъектов Российской Федерации и местных бюджетов",
+                                                "ind_code": "402"
+                                            }
                                         ]
                                     }
                             )
-                        ],
+                        ]
                 ),
                 400: OpenApiResponse(
                         description="Ошибка валидации входного запроса (RegNumAndDatetimeSerializer).",
@@ -213,15 +249,25 @@ class Indicators101APIView(APIView):
     def post(self, request: Request, *args, **kwargs) -> Response:
         in_serializer = RegNumAndDatetimeSerializer(data=request.data)
         in_serializer.is_valid(raise_exception=True)
-        reg_number = in_serializer.validated_data['reg_number']
-        dt = in_serializer.validated_data['dt']
+        params = in_serializer.validated_data
 
-        data = Form101Parser.get_form101_indicators_from_data101(reg_number, dt)
+        bank = Bank.objects.get(reg_number=params['reg_number'])
+        form_type = FormType.objects.get(title='F101')
+        existing = _find_existing_indicators_request(bank, form_type, params)
+        if existing and hasattr(existing, 'response'):
+            return Response(existing.response.indicators, status=status.HTTP_200_OK)
+
+        data = Form101Parser.get_form101_indicators_from_data101(params['reg_number'], params['dt'])
         if 'message' in data:
             return Response(data, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
-        out_serializer = Indicators101Serializer(instance=data)
-        return Response(out_serializer.data, status=status.HTTP_200_OK)
+        processed_data = Indicators101Serializer(instance=data).data
+        req_obj = _create_or_get_indicators_request_atomic(bank, form_type, params)
+        if hasattr(req_obj, 'response') and req_obj.response is not None:
+            return Response(req_obj.response.indicators, status=status.HTTP_200_OK)
+
+        BankIndicatorsResponse.objects.create(request=req_obj, indicators=processed_data)
+        return Response(processed_data, status=status.HTTP_200_OK)
 
 
 class BankIndicator101APIView(APIView):
@@ -262,11 +308,31 @@ class BankIndicator101APIView(APIView):
             ],
             responses={
                 200: OpenApiResponse(
-                        response=BankIndicator101DataSerializer,
-                        description=(
-                                "Успешный ответ — массив объектов с данными индикатора "
-                                "(каждый объект — один момент/запись)."
-                        )
+                        response=BankIndicator101DataSerializer(many=True),
+                        description="Успешный ответ — массив данных индикатора",
+                        examples=[
+                            OpenApiExample(
+                                    name="Пример успешного ответа",
+                                    value=[
+                                        {
+                                            "bank_reg_number": "1481",
+                                            "date": "2024-06-01T00:00:00",
+                                            "pln": "А",
+                                            "ap": 2,
+                                            "vitg": 15000000.0,
+                                            "iitg": 18000000.0
+                                        },
+                                        {
+                                            "bank_reg_number": "1481",
+                                            "date": "2024-07-01T00:00:00",
+                                            "pln": "А",
+                                            "ap": 2,
+                                            "vitg": 18000000.0,
+                                            "iitg": 22000000.0
+                                        }
+                                    ]
+                            )
+                        ]
                 ),
                 400: OpenApiResponse(
                         description="Неверный запрос (валидация входных данных)."
@@ -283,17 +349,25 @@ class BankIndicator101APIView(APIView):
     def post(self, request: Request, *args, **kwargs) -> Response:
         in_serializer = BankIndicator101RequestSerializer(data=request.data)
         in_serializer.is_valid(raise_exception=True)
-        reg_number = in_serializer.validated_data['reg_number']
-        ind_code = str(in_serializer.validated_data['ind_code']).strip()
-        date_from = in_serializer.validated_data['date_from']
-        date_to = in_serializer.validated_data['date_to']
+        params = in_serializer.validated_data
 
-        data: list[dict] = Form101Parser.get_indicator_data(reg_number, ind_code, date_from, date_to)
+        bank = Bank.objects.get(reg_number=params['reg_number'])
+        form_type = FormType.objects.get(title='F101')
+        existing = _find_existing_bank_indicators_data_request(bank, form_type, **params)
+        if existing and hasattr(existing, 'response'):
+            return Response(existing.response.bank_indicator_data, status=status.HTTP_200_OK)
+
+        data: list[dict] = Form101Parser.get_indicator_data(**params)
         if 'message' in data:
             return Response(data, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
-        out_serializer = BankIndicator101DataSerializer(instance=data, many=True)
-        return Response(out_serializer.data, status=status.HTTP_200_OK)
+        processed_data = BankIndicator101DataSerializer(instance=data, many=True).data
+        req_obj = _create_or_get_bank_indicators_data_request_atomic(bank, form_type, **params)
+        if hasattr(req_obj, 'response') and req_obj.response is not None:
+            return Response(req_obj.response.bank_indicator_data, status=status.HTTP_200_OK)
+
+        BankIndicatorDataResponse.objects.create(request=req_obj, bank_indicator_data=processed_data)
+        return Response(processed_data, status=status.HTTP_200_OK)
 
 
 class UniqueIndicators101APIView(APIView):
@@ -356,6 +430,12 @@ class Datetimes123APIView(APIView):
                     "Пример запроса: `{ \"reg_number\": 1481 }`.\n"
             ),
             request=RegNumberSerializer,
+            examples=[
+                OpenApiExample(
+                        name="Пример запроса",
+                        value={'reg_number': 1481},
+                        media_type='application/json')
+            ],
             responses={
                 200: OpenApiResponse(
                         response=DateTimesSerializer,
@@ -399,21 +479,33 @@ class Datetimes123APIView(APIView):
     def post(self, request: Request, *args, **kwargs) -> Response:
         in_serializer = RegNumberSerializer(data=request.data)
         in_serializer.is_valid(raise_exception=True)
-        reg_number = in_serializer.validated_data['reg_number']
+        params = in_serializer.validated_data
+        bank = Bank.objects.get(reg_number=params['reg_number'])
+        form_type = FormType.objects.get(title='F123')
 
-        data = Form123Parser.get_dates_for_f123(reg_number)
+        existing = _find_existing_dates_request(bank, form_type, params)
+        if existing and hasattr(existing, 'response'):
+            return Response(existing.response.datetimes, status=status.HTTP_200_OK)
+
+        data = Form123Parser.get_dates_for_f123(params['reg_number'])
         if 'message' in data:
             return Response(data, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
-        out_serializer = DateTimesSerializer(instance=data)
-        return Response(out_serializer.data, status=status.HTTP_200_OK)
+        processed_data = DateTimesSerializer(instance=data).data
+        req_obj = _create_or_get_datetimes_request_atomic(bank, form_type, params)
+
+        if hasattr(req_obj, 'response') and req_obj.response is not None:
+            return Response(req_obj.response.datetimes, status=status.HTTP_200_OK)
+
+        BankDatesResponse.objects.create(request=req_obj, datetimes=processed_data)
+        return Response(processed_data, status=status.HTTP_200_OK)
 
 
 class Indicators123APIView(APIView):
     @extend_schema(
             summary="Список доступных индикаторов формы F123 для банка",
             description=(
-                    "Возвращает список индикаторов формы F123, которые реально заполнены "
+                    "Возвращает список индикаторов формы F123, которые заполнены "
                     "для заданного банка на указанную дату.\n\n"
                     "Вход (JSON): `{ \"reg_number\": <int>, \"dt\": \"<ISO-8601 datetime>\" }`.\n\n"
                     "Возвращаемая структура: `{ \"indicators\": [ { \"name\": ... }, ... ] }`.\n\n"
@@ -444,23 +536,28 @@ class Indicators123APIView(APIView):
             }
     )
     def post(self, request: Request, *args, **kwargs) -> Response:
-        """
-        Обрабатывает POST-запрос:
-        - валидирует входные данные через RegNumAndDatetimeSerializer (reg_number, dt),
-        - вызывает Form123Parser.get_form123_indicators_from_data123(reg_number, dt),
-        - возвращает сериализованный ответ Indicators123Serializer.
-        """
         in_serializer = RegNumAndDatetimeSerializer(data=request.data)
         in_serializer.is_valid(raise_exception=True)
-        reg_number = in_serializer.validated_data['reg_number']
-        dt = in_serializer.validated_data['dt']
+        params = in_serializer.validated_data
+        bank = Bank.objects.get(reg_number=params['reg_number'])
+        form_type = FormType.objects.get(title='F123')
 
-        data = Form123Parser.get_form123_indicators_from_data123(reg_number, dt)
+        existing = _find_existing_indicators_request(bank, form_type, params)
+        if existing and hasattr(existing, 'response'):
+            return Response(existing.response.indicators, status=status.HTTP_200_OK)
+
+        data = Form123Parser.get_form123_indicators_from_data123(params['reg_number'], params['dt'])
         if 'message' in data:
             return Response(data, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
-        out_serializer = Indicators123Serializer(instance=data)
-        return Response(out_serializer.data, status=status.HTTP_200_OK)
+        processed_data = Indicators123Serializer(instance=data).data
+
+        req_obj = _create_or_get_indicators_request_atomic(bank, form_type, params)
+        if hasattr(req_obj, 'response') and req_obj.response is not None:
+            return Response(req_obj.response.indicators, status=status.HTTP_200_OK)
+
+        BankIndicatorsResponse.objects.create(request=req_obj, indicators=processed_data)
+        return Response(processed_data, status=status.HTTP_200_OK)
 
 
 class BankIndicator123APIView(APIView):
@@ -489,27 +586,55 @@ class BankIndicator123APIView(APIView):
                 )
             ],
             responses={
-                200: OpenApiResponse(response=BankIndicator123DataSerializer,
-                                     description="Массив значений индикаторов F123."),
+                200: OpenApiResponse(
+                        response=BankIndicator123DataSerializer(many=True),
+                        description="Успешный ответ — значения индикаторов F123",
+                        examples=[
+                            OpenApiExample(
+                                    name="Пример успешного ответа",
+                                    value=[
+                                        {
+                                            "bank_reg_number": "1481",
+                                            "name": "Собственные средства (капитал), итого, в том числе:",
+                                            "value": 6500000000.0
+                                        },
+                                        {
+                                            "bank_reg_number": "1481",
+                                            "name": "Базовый капитал, итого",
+                                            "value": 5500000000.0
+                                        },
+                                        {
+                                            "bank_reg_number": "1481",
+                                            "name": "Дополнительный капитал, итого",
+                                            "value": 1000000000.0
+                                        }
+                                    ]
+                            )
+                        ]
+                ),
                 400: OpenApiResponse(description="Ошибка валидации запроса."),
                 422: OpenApiResponse(description="Ошибка внешнего API или парсера.")
             }
     )
     def post(self, request: Request, *args, **kwargs) -> Response:
-        """
-        Обрабатывает POST-запрос:
-        - валидирует входные данные через RegNumAndDatetimeSerializer,
-        - вызывает Form123Parser.get_data123_form_full(reg_number, dt),
-        - возвращает сериализованный список через BankIndicator123DataSerializer(many=True).
-        """
         in_serializer = RegNumAndDatetimeSerializer(data=request.data)
         in_serializer.is_valid(raise_exception=True)
-        reg_number = in_serializer.validated_data['reg_number']
-        dt = in_serializer.validated_data['dt']
+        params = in_serializer.validated_data
+        bank = Bank.objects.get(reg_number=params['reg_number'])
+        form_type = FormType.objects.get(title='F123')
 
-        data = Form123Parser.get_data123_form_full(reg_number, dt)
+        existing = _find_existing_bank_indicators_data_request(bank, form_type, **params)
+        if existing and hasattr(existing, 'response'):
+            return Response(existing.response.bank_indicator_data, status=status.HTTP_200_OK)
+
+        data = Form123Parser.get_data123_form_full(params['reg_number'], params['dt'])
         if 'message' in data:
             return Response(data, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
-        out_serializer = BankIndicator123DataSerializer(instance=data, many=True)
-        return Response(out_serializer.data, status=status.HTTP_200_OK)
+        processed_data = BankIndicator123DataSerializer(instance=data, many=True).data
+        req_obj = _create_or_get_bank_indicators_data_request_atomic(bank, form_type, **params)
+        if hasattr(req_obj, 'response') and req_obj.response is not None:
+            return Response(req_obj.response.bank_indicator_data, status=status.HTTP_200_OK)
+
+        BankIndicatorDataResponse.objects.create(request=req_obj, bank_indicator_data=processed_data)
+        return Response(processed_data, status=status.HTTP_200_OK)

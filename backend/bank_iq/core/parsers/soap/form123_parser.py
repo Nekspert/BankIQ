@@ -77,15 +77,18 @@ class Form123Parser:
                         result.append({'bank_reg_number': reg_number,
                                        'name': item['F123']['NAME'],
                                        'value': float(item['F123'].get('VALUE', 0))})
-                if 'Собственные средства (капитал), итого, в том числе:' not in result:
+
+                names_in_result = {d['name'] for d in result}
+
+                if 'Собственные средства (капитал), итого, в том числе:' not in names_in_result:
                     result.append({'bank_reg_number': reg_number,
                                    'name': 'Собственные средства (капитал), итого, в том числе:',
                                    'value': 0.0})
-                if 'Базовый капитал, итого' not in result:
+                if 'Базовый капитал, итого' not in names_in_result:
                     result.append({'bank_reg_number': reg_number,
                                    'name': 'Базовый капитал, итого',
                                    'value': 0.0})
-                if 'Дополнительный капитал, итого' not in result:
+                if 'Дополнительный капитал, итого' not in names_in_result:
                     result.append({'bank_reg_number': reg_number,
                                    'name': 'Дополнительный капитал, итого',
                                    'value': 0.0})

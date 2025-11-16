@@ -4,68 +4,113 @@ import { indicatorsApi } from '@/shared/api/indicatorsApi';
 import type { BankIndicator } from '@/shared/api/indicatorsApi';
 import type { Indicator } from '../../settings-modal/types';
 
+/**
+ * ��� ��� ���������� ������������ �������� � API ����������� ������.
+ * ���������� `react-query` ��� �������� ������ �� ������� ��������� ����� � ����������.
+ * ������������� ��������� ������������ � ���������� �����������.
+ *
+ * @hook
+ * @param {BankIndicator[]} selectedBanks � ������ ��������� ������.
+ * @param {Indicator[]} selectedIndicators � ������ ��������� �����������.
+ * @param {string | null} dateFrom � ������ ������� (������ YYYY-MM).
+ * @param {string | null} dateTo � ����� ������� (������ YYYY-MM).
+ *
+ * @returns {{
+ *   indicatorData: Record<string, Record<string, { iitg: number | null; vitg: number | null }>>;
+ *   rawResults: ReturnType<typeof useQueries>;
+ * }}
+ * ������ � ������������:
+ * - `indicatorData` � �������������� ������ �� ������ � �����������;
+ * - `rawResults` � ������������ ���������� �������� `react-query`.
+ *
+ * @see {@link indicatorsApi.getIndicatorData} � ��������� �������� ������ �� ����������� ����������.
+ * @see {@link useQueries} � ��������� �������������� ������������ ���������.
+ * @see {@link useBanksComparison} � �������� ���, ������������ ������ ��� ��������� ������.
+ *
+ * @example
+ * ```tsx
+ * const { indicatorData, rawResults } = useIndicatorQueries(
+ *   selectedBanks,
+ *   selectedIndicators,
+ *   '2024-01',
+ *   '2024-06'
+ * );
+ * ```
+ */
 export const useIndicatorQueries = (
-  selectedBanks: BankIndicator[],
-  selectedIndicators: Indicator[],
-  dateFrom: string | null,
-  dateTo: string | null
+    selectedBanks: BankIndicator[],
+    selectedIndicators: Indicator[],
+    dateFrom: string | null,
+    dateTo: string | null
 ) => {
-  const queries = useMemo(() => {
-    if (!selectedBanks?.length || !selectedIndicators?.length) return [];
-    if (!dateFrom || !dateTo) return [];
+    /** 
+     * @hook useMemo
+     * ��������� ������ ������������ �������� ��� react-query.
+     * ������ ������ �������� �� ���������� (���. �����, ��� ����������, ������).
+     */
+    const queries = useMemo(() => {
+        if (!selectedBanks?.length || !selectedIndicators?.length) return [];
+        if (!dateFrom || !dateTo) return [];
 
-    return selectedBanks.flatMap((bank) =>
-      selectedIndicators.map((indicator) => {
-        const reg = Number(bank.reg_number);
-        const ind = indicator.ind_code;
+        return selectedBanks.flatMap((bank) =>
+            selectedIndicators.map((indicator) => {
+                const reg = Number(bank.reg_number);
+                const ind = indicator.ind_code;
 
-        return {
-          queryKey: ['indicator-data', reg, ind, dateFrom, dateTo],
-          queryFn: async () => {
-            const data = await indicatorsApi.getIndicatorData({
-              reg_number: reg,
-              ind_code: ind,
-              date_from: dateFrom,
-              date_to: dateTo,
-            });
-            return data;
-          },
-          enabled: true,
-          staleTime: 1000 * 60 * 5,
-          cacheTime: 1000 * 60 * 30,
-          refetchOnWindowFocus: false,
-          retry: false,
-        };
-      })
-    );
-  }, [selectedBanks, selectedIndicators, dateFrom, dateTo]);
+                return {
+                    queryKey: ['indicator-data', reg, ind, dateFrom, dateTo],
+                    /** @function queryFn � ��������� ������ ������ �� ���������� ����� */
+                    queryFn: async () => {
+                        const { iitg, vitg } = await indicatorsApi.getIndicatorData({
+                            reg_number: reg,
+                            ind_code: ind,
+                            date_from: dateFrom,
+                            date_to: dateTo,
+                        });
+                        return { iitg, vitg };
+                    },
+                    enabled: true,
+                    staleTime: 1000 * 60 * 5,
+                    cacheTime: 1000 * 60 * 30,
+                    refetchOnWindowFocus: false,
+                    retry: false,
+                };
+            })
+        );
+    }, [selectedBanks, selectedIndicators, dateFrom, dateTo]);
 
-  const results = useQueries({ queries });
+    /** 
+     * @hook useQueries
+     * ��������� ��� ������� ����������� � ���������� ������ �����������.
+     */
+    const results = useQueries({ queries });
 
-  const indicatorData = useMemo(() => {
-    const out: Record<
-      string,
-      Record<string, { iitg: number | null; vitg: number | null }>
-    > = {};
+    /**
+     * @hook useMemo
+     * ����������� ������ ����������� � ������ � ������� [���.�����][���_����������].
+     */
+    const indicatorData = useMemo(() => {
+        const out: Record<string, Record<string, { iitg: number | null; vitg: number | null }>> = {};
 
-    if (!results || results.length === 0) return out;
+        if (!results || results.length === 0) return out;
 
-    let idx = 0;
-    for (const bank of selectedBanks) {
-      const reg = bank.reg_number;
-      for (const indicator of selectedIndicators) {
-        if (idx >= results.length) break;
-        const res = results[idx];
-        const value = { iitg: res?.data?.[0]?.iitg || null, vitg: res?.data?.[0]?.vitg || null }
-        if (!out[reg]) out[reg] = {};
-        out[reg][indicator.ind_code] = value;
+        let idx = 0;
+        for (const bank of selectedBanks) {
+            const reg = bank.reg_number;
+            for (const indicator of selectedIndicators) {
+                if (idx >= results.length) break;
+                const res = results[idx];
+                const value = res?.data ?? { iitg: null, vitg: null };
 
-        idx++;
-      }
-    }
+                if (!out[reg]) out[reg] = {};
+                out[reg][indicator.ind_code] = value;
 
-    return out;
-  }, [results, selectedBanks, selectedIndicators]);
+                idx++;
+            }
+        }
 
-  return { indicatorData, rawResults: results };
+        return out;
+    }, [results, selectedBanks, selectedIndicators]);
+
+    return { indicatorData, rawResults: results };
 };
