@@ -4,7 +4,7 @@ import Button from '@/shared/ui/button/Button';
 import { TableLoader } from '../table-loader/TableLoader';
 import AddBankModal from '../add-bank-modal/AddBankModal';
 import SettingsModal from '../settings-modal/SettingsModal';
-import FilterSvg from './icons/filter.svg?react';
+import FilterSvg from '@/shared/icons/filter.svg?react';
 import styles from './styles.module.scss';
 import { useBanksComparison } from './hooks/useBanksComparison';
 import { formatNumber } from './utils/format';
@@ -83,7 +83,10 @@ export const BanksComparison = () => {
       >
         <div className={styles['title-wrapper']}>
           <Title size="large" className={styles.title}>
-            Сравнение банков
+            Сравнение банков (Форма 101)
+            <div className={styles.warning}>
+              * все показатели указаны в тысячах ₽
+            </div>
           </Title>
           <div className={styles['controls']}>
             <Button
@@ -181,21 +184,24 @@ export const BanksComparison = () => {
                         indicatorData[bank.reg_number]?.[code]?.iitg;
                       const startVal =
                         indicatorData[bank.reg_number]?.[code]?.vitg;
-                        console.log(indicatorData[bank.reg_number]?.[code])
-                        console.log(rawVal, startVal)
                       const delta = startVal
-                        ? ((rawVal || 0) - (startVal || 0)) / (startVal || 1)
+                        ? ((startVal || 0) - (rawVal || 0)) / (rawVal || 1)
                         : null;
                       const deltaPercent =
                         delta != null ? Math.round(delta * 100) : null;
                       let cellStyle: CSSProperties = {};
                       if (showDynamics && delta != null) {
-                        if (delta > 0) cellStyle.backgroundColor = 'var(--light-green)';
+                        if (delta > 0)
+                          cellStyle.backgroundColor = 'var(--light-green)';
                         else if (delta < 0)
                           cellStyle.backgroundColor = 'var(--light-red)';
                       }
                       return (
-                        <td key={`${bank.bic}_${rowKey}`} style={cellStyle} className={styles['cell']}>
+                        <td
+                          key={`${bank.bic}_${rowKey}`}
+                          style={cellStyle}
+                          className={styles['cell']}
+                        >
                           {showDynamics && deltaPercent != null && (
                             <span className={styles['cell-delta']}>
                               {deltaPercent > 0
@@ -203,7 +209,7 @@ export const BanksComparison = () => {
                                 : `${deltaPercent}%`}
                             </span>
                           )}
-                          {formatNumber(rawVal)}
+                          {formatNumber(startVal)}
                         </td>
                       );
                     })}

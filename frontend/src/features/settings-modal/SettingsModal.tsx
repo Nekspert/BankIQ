@@ -69,7 +69,7 @@ const SettingsModal: FC<SettingsModalProps> = ({
       .filter(
         (b) =>
           b.name.toLowerCase().includes(q) ||
-          b.reg_number.toLowerCase().includes(q) ||
+          b.reg_number?.toString()?.toLowerCase()?.includes(q) ||
           b.bic.toLowerCase().includes(q)
       )
       .sort((a, b) => {
