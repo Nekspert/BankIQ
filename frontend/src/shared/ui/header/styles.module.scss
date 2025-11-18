@@ -46,6 +46,23 @@
       }
     }
   }
+  &__right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    &-button {
+      height: 40px !important;
+      min-height: 40px !important;
+      padding: 12px !important;
+      & > svg {
+        width: 20px;
+        height: 20px;
+        > path {
+          stroke: $background-button-primary !important;
+        }
+      }
+    }
+  }
 }
 
 @media (max-width: 768px) {

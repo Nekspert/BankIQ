@@ -13,6 +13,7 @@ import { useF123Queries } from './hooks/useF123Queries';
 import { formatNumber } from '@/features/banks-comparison/utils/format';
 import AddBankModal from '@/features/add-bank-modal/AddBankModal';
 import { F123_ROWS } from './constants';
+import ExportSvg from '@/shared/icons/DownloadIcon.svg?react'
 
 export const Form123Table: FC = () => {
   const { data: allBanksData } = useGetAllBanks();
@@ -67,6 +68,13 @@ export const Form123Table: FC = () => {
           </div>
 
           <div className={styles['controls']}>
+            <Button
+              variant="ghost"
+              className={styles['filter']}
+              // onClick={() => setIsSettingsOpen(true)}
+            >
+              <ExportSvg />
+            </Button>
             <Button
               variant="ghost"
               className={styles['filter']}

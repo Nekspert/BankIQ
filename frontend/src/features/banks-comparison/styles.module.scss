@@ -187,6 +187,12 @@
   }
 }
 
+.controls{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .date-controls {
   display: flex;
   gap: 25px;
