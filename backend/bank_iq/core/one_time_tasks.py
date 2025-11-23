@@ -12,7 +12,15 @@ def form_f123():
     }
 
 
+def form_f810():
+    return {
+        'title': 'F810',
+        'description': 'Форма 810 — отчёт об изменениях в капитале кредитной организации'
+    }
+
+
 REGISTRY = [
     form_f101,
     form_f123,
+    form_f810,
 ]

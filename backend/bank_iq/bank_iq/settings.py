@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'reports.apps.ReportsConfig',
     'indicators.apps.IndicatorsConfig',
     'exports.apps.ExportsConfig',
+    'banks.apps.BanksConfig',
 ]
 
 MIDDLEWARE = [
@@ -148,3 +149,6 @@ SPECTACULAR_SETTINGS = {
     'SERVE_INCLUDE_SCHEMA': False,  # Отключение схемы в ответах API,
     'SCHEMA_PATH_PREFIX': r'/api/',
 }
+
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER", "redis://redis:6379/0")
+CELERY_RESULT_BACKEND = os.environ.get("CELERY_BROKER", "redis://redis:6379/0")

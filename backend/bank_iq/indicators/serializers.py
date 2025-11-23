@@ -1,61 +1,6 @@
 from rest_framework import serializers
 
 
-class BankInfoSerializer(serializers.Serializer):
-    bic = serializers.CharField(
-            required=True,
-            help_text="БИК банка (Bank Identification Code). Уникальный идентификатор банка. Пример: '044525225'."
-    )
-    name = serializers.CharField(
-            required=True,
-            help_text="Полное наименование кредитной организации."
-    )
-    reg_number = serializers.IntegerField(
-            required=True,
-            help_text="Регистрационный номер организации в базе ЦБ РФ (строка). Пример: '1481'."
-    )
-    internal_code = serializers.CharField(
-            required=True,
-            help_text="Внутренний код/идентификатор банка в источнике данных (если доступен)."
-    )
-    registration_date = serializers.DateTimeField(
-            required=True,
-            help_text="Дата регистрации организации (ISO 8601). Может содержать смещение часового пояса."
-    )
-    region_code = serializers.CharField(
-            required=True,
-            help_text="Код региона (региональный номер/код)."
-    )
-    tax_id = serializers.CharField(
-            required=True,
-            help_text="Идентификатор налогоплательщика (ИНН) или другой налоговый идентификатор, если присутствует."
-    )
-
-
-class AllBanksSerializer(serializers.Serializer):
-    banks = BankInfoSerializer(
-            many=True,
-            help_text="Список банков, каждый элемент — структура BankInfoSerializer."
-    )
-
-
-class RegNumberSerializer(serializers.Serializer):
-    reg_number = serializers.IntegerField(
-            required=True,
-            help_text="Регистрационный номер банка (целое положительное число). Пример: 1481."
-    )
-
-
-class DateTimesSerializer(serializers.Serializer):
-    datetimes = serializers.ListSerializer(
-            child=serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%S%Z'),
-            help_text=(
-                "Список доступных дат формы F101. Каждая дата возвращается в ISO-8601. "
-                "Если исходный объект содержит tzinfo, DRF может конвертировать в UTC (с суффиксом 'Z')."
-            )
-    )
-
-
 class RegNumAndDatetimeSerializer(serializers.Serializer):
     reg_number = serializers.IntegerField(
             required=True,
@@ -221,3 +166,22 @@ class BankIndicator123DataSerializer(serializers.Serializer):
     value = serializers.FloatField(
             required=True,
             help_text="Значение показателя.")
+
+
+class BankIndicator810DataSerializer(serializers.Serializer):
+    NUM_STR = serializers.FloatField(required=True, help_text="Номер строки (например, 1.0, 5.1).")
+    LABEL = serializers.CharField(required=True,
+                                  help_text="Описание/лейбл строки (например, 'Данные на начало предыдущего отчетного года').")
+    NUM_P = serializers.CharField(required=True,
+                                  help_text="Дополнительный номер/пункт (может быть '-', '3.12, 5', '4.1.9' или числом).")
+    USTKAP = serializers.FloatField(required=True, help_text="Уставный капитал.")
+    SOB_AK = serializers.FloatField(required=True, help_text="Собственные акции.")
+    EMIS_DOH = serializers.FloatField(required=True, help_text="Эмиссионный доход.")
+    PER_CB = serializers.FloatField(required=True, help_text="Переоценка ценных бумаг.")
+    PER_OS = serializers.FloatField(required=True, help_text="Переоценка основных средств.")
+    DELTADVR = serializers.FloatField(required=True, help_text="Дельта ДВР (возможно, дельта добавочного капитала).")
+    PER_IH = serializers.FloatField(required=True, help_text="Переоценка инструментов хеджирования.")
+    REZERVF = serializers.FloatField(required=True, help_text="Резервный фонд.")
+    VKL_V_IM = serializers.FloatField(required=True, help_text="Вклады в имущество.")
+    NERASP_PU = serializers.FloatField(required=True, help_text="Нераспределенная прибыль (убыток).")
+    ITOGO_IK = serializers.FloatField(required=True, help_text="Итого источники капитала.")

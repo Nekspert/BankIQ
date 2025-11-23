@@ -27,7 +27,7 @@ class CheckValidDataAPIView(APIView):
             request=CheckRequestSerializer,
             responses={
                 200: OpenApiResponse(
-                        response=CheckResponseSerializer(many=True),
+                        response=CheckResponseSerializer,
                         description="Успешный ответ — объект с одним из ключей: `publication_ids` / `dataset_ids` / "
                                     "`measure_ids` / `years`.",
                         examples=[
@@ -93,6 +93,7 @@ class CheckValidDataAPIView(APIView):
                                            value={"message": "Ошибка внешнего API: <описание ошибки>"}),
                         ],
                 ),
+                500: OpenApiResponse(description='Ошибка сервера', )
             },
             examples=[
                 OpenApiExample(name="Пример запроса — получить все публикации (пустой body)", value={}),
@@ -220,6 +221,7 @@ class InterestRatesCreditAPIView(APIView):
                                            value={"message": "Ошибка внешнего API: <описание ошибки>"}),
                         ],
                 ),
+                500: OpenApiResponse(description='Ошибка сервера', )
             },
             examples=[
                 OpenApiExample(name="Пример запроса для publication_id=14",
@@ -313,6 +315,7 @@ class InterestRatesDepositAPIView(APIView):
                                            value={"message": "Ошибка внешнего API: <описание ошибки>"}),
                         ],
                 ),
+                500: OpenApiResponse(description='Ошибка сервера', )
             },
             examples=[
                 OpenApiExample(name="Пример запроса для publication_id=18",

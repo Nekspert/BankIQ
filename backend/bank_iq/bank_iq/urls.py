@@ -7,6 +7,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     path('api/', include('reports.urls')),
+    path('api/', include('banks.urls')),
     path('api/', include('indicators.urls')),
 
     # Генерация OpenAPI схемы

@@ -59,7 +59,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pg_data:/var/lib/postgresql/data
     networks:
       - bankIQ
 
@@ -83,7 +83,7 @@ services:
       - bankIQ
 
 volumes:
-  pgdata:
+  pg_data:
 
 networks:
   bankIQ:
