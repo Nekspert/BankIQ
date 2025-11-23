@@ -5,27 +5,27 @@ import type { BankIndicator } from '@/shared/api/indicatorsApi';
 import type { Indicator } from '../../settings-modal/types';
 
 /**
- * Хук для выполнения параллельных запросов к API показателей банков.
- * Использует `react-query` для загрузки данных по каждому сочетанию банка и индикатора.
- * Автоматически управляет кэшированием и агрегацией результатов.
+ * пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ API пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.
+ * пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ `react-query` пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
+ * пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
  *
  * @hook
- * @param {BankIndicator[]} selectedBanks — Список выбранных банков.
- * @param {Indicator[]} selectedIndicators — Список выбранных индикаторов.
- * @param {string | null} dateFrom — Начало периода (формат YYYY-MM).
- * @param {string | null} dateTo — Конец периода (формат YYYY-MM).
+ * @param {BankIndicator[]} selectedBanks пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.
+ * @param {Indicator[]} selectedIndicators пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
+ * @param {string | null} dateFrom пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅ YYYY-MM).
+ * @param {string | null} dateTo пїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅ YYYY-MM).
  *
  * @returns {{
  *   indicatorData: Record<string, Record<string, { iitg: number | null; vitg: number | null }>>;
  *   rawResults: ReturnType<typeof useQueries>;
  * }}
- * Объект с результатами:
- * - `indicatorData` — агрегированные данные по банкам и индикаторам;
- * - `rawResults` — оригинальные результаты запросов `react-query`.
+ * пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ:
+ * - `indicatorData` пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ;
+ * - `rawResults` пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ `react-query`.
  *
- * @see {@link indicatorsApi.getIndicatorData} — Выполняет загрузку данных по конкретному показателю.
- * @see {@link useQueries} — Управляет множественными асинхронными запросами.
- * @see {@link useBanksComparison} — Основной хук, использующий данный для сравнения банков.
+ * @see {@link indicatorsApi.getIndicatorData} пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
+ * @see {@link useQueries} пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
+ * @see {@link useBanksComparison} пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.
  *
  * @example
  * ```tsx
@@ -38,79 +38,83 @@ import type { Indicator } from '../../settings-modal/types';
  * ```
  */
 export const useIndicatorQueries = (
-    selectedBanks: BankIndicator[],
-    selectedIndicators: Indicator[],
-    dateFrom: string | null,
-    dateTo: string | null
+  selectedBanks: BankIndicator[],
+  selectedIndicators: Indicator[],
+  dateFrom: string | null,
+  dateTo: string | null
 ) => {
-    /** 
-     * @hook useMemo
-     * Формирует массив конфигураций запросов для react-query.
-     * Каждый запрос уникален по комбинации (рег. номер, код индикатора, период).
-     */
-    const queries = useMemo(() => {
-        if (!selectedBanks?.length || !selectedIndicators?.length) return [];
-        if (!dateFrom || !dateTo) return [];
+  /**
+   * @hook useMemo
+   * пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ react-query.
+   * пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅ. пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅ).
+   */
+  const queries = useMemo(() => {
+    if (!selectedBanks?.length || !selectedIndicators?.length) return [];
+    if (!dateFrom || !dateTo) return [];
 
-        return selectedBanks.flatMap((bank) =>
-            selectedIndicators.map((indicator) => {
-                const reg = Number(bank.reg_number);
-                const ind = indicator.ind_code;
+    return selectedBanks.flatMap((bank) =>
+      selectedIndicators.map((indicator) => {
+        const reg = Number(bank.reg_number);
+        const ind = indicator.ind_code;
 
-                return {
-                    queryKey: ['indicator-data', reg, ind, dateFrom, dateTo],
-                    /** @function queryFn — Выполняет запрос данных по индикатору банка */
-                    queryFn: async () => {
-                        const { iitg, vitg } = await indicatorsApi.getIndicatorData({
-                            reg_number: reg,
-                            ind_code: ind,
-                            date_from: dateFrom,
-                            date_to: dateTo,
-                        });
-                        return { iitg, vitg };
-                    },
-                    enabled: true,
-                    staleTime: 1000 * 60 * 5,
-                    cacheTime: 1000 * 60 * 30,
-                    refetchOnWindowFocus: false,
-                    retry: false,
-                };
-            })
-        );
-    }, [selectedBanks, selectedIndicators, dateFrom, dateTo]);
+        return {
+          queryKey: ['indicator-data', reg, ind, dateFrom, dateTo],
+          /** @function queryFn пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ */
+          queryFn: async () => {
+            const data = await indicatorsApi.getIndicatorData({
+              reg_number: reg,
+              ind_code: ind,
+              date_from: dateFrom,
+              date_to: dateTo,
+            });
+            return data;
+          },
+          enabled: true,
+          staleTime: 1000 * 60 * 5,
+          cacheTime: 1000 * 60 * 30,
+          refetchOnWindowFocus: false,
+          retry: false,
+        };
+      })
+    );
+  }, [selectedBanks, selectedIndicators, dateFrom, dateTo]);
 
-    /** 
-     * @hook useQueries
-     * Выполняет все запросы параллельно и возвращает массив результатов.
-     */
-    const results = useQueries({ queries });
+  /**
+   * @hook useQueries
+   * пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
+   */
+  const results = useQueries({ queries });
 
-    /**
-     * @hook useMemo
-     * Преобразует массив результатов в объект с ключами [рег.номер][код_индикатора].
-     */
-    const indicatorData = useMemo(() => {
-        const out: Record<string, Record<string, { iitg: number | null; vitg: number | null }>> = {};
+  /**
+   * @hook useMemo
+   * пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ [пїЅпїЅпїЅ.пїЅпїЅпїЅпїЅпїЅ][пїЅпїЅпїЅ_пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ].
+   */
+  const indicatorData = useMemo(() => {
+    const out: Record<
+      string,
+      Record<string, { iitg: number | null; vitg: number | null }>
+    > = {};
 
-        if (!results || results.length === 0) return out;
+    if (!results || results.length === 0) return out;
+    let idx = 0;
+    for (const bank of selectedBanks) {
+      const reg = bank.reg_number;
+      for (const indicator of selectedIndicators) {
+        if (idx >= results.length) break;
+        const res = results[idx].data;
+        const first = res?.[0]?.iitg;
+        const last = res?.[res?.length - 2]?.iitg;
+        const value = { iitg: first ?? null, vitg: last ?? null };
 
-        let idx = 0;
-        for (const bank of selectedBanks) {
-            const reg = bank.reg_number;
-            for (const indicator of selectedIndicators) {
-                if (idx >= results.length) break;
-                const res = results[idx];
-                const value = res?.data ?? { iitg: null, vitg: null };
+        if (!out[reg]) out[reg] = {};
+        out[reg][indicator.ind_code] = value;
 
-                if (!out[reg]) out[reg] = {};
-                out[reg][indicator.ind_code] = value;
+        idx++;
+      }
+    }
 
-                idx++;
-            }
-        }
+    return out;
+  }, [results, selectedBanks, selectedIndicators]);
 
-        return out;
-    }, [results, selectedBanks, selectedIndicators]);
-
-    return { indicatorData, rawResults: results };
+  return { indicatorData, rawResults: results };
 };

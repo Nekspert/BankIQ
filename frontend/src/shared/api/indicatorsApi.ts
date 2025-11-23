@@ -46,6 +46,6 @@ export const indicatorsApi = {
     const { data } = await axios.get(
       'api/indicators/f101/unique-form-indicators'
     );
-    return data;
+    return data.indicators;
   },
 };

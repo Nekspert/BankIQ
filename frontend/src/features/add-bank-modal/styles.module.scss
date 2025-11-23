@@ -32,11 +32,11 @@
   transition: background 0.2s;
 
   &:hover {
-    background-color: #f0f0f0;
+    background-color: $background-primary;
   }
 
   &.selected {
-    background-color: #d0e6ff;
+    background-color: $text-white-primary;
   }
 }
 

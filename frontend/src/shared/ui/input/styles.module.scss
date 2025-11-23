@@ -1,0 +1,42 @@
+.input {
+  padding: 10px 20px;
+  border-radius: 5px;
+  border: 1px solid $background-button-secondary;
+  transition: all 0.3s ease-in-out;
+  background-color: $text-white-primary;
+  font-size: 20px;
+  width: 100%;
+}
+
+.inputWrapper {
+  position: relative;
+}
+
+.dropdown {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 6px);
+  background-color: $background-button-primary;
+  border: 1px solid $background-button-secondary;
+  border-radius: 8px;
+  box-shadow: $background-primary-shadow;
+  max-height: 200px;
+  overflow: auto;
+  z-index: 10;
+  padding: 6px 0;
+}
+
+.option {
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  color: $text-primary;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.optionActive {
+  background-color: $text-muted;
+}

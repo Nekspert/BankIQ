@@ -68,11 +68,11 @@ export const AddBankModal: FC<AddBankModalProps> = ({
      * Фильтрует и сортирует банки по поисковой строке и выбранным банкам.
      */
     const filteredBanks = useMemo(() => {
-        const filtered = allBanks.filter(
+        const filtered = allBanks?.filter(
             (b) =>
-                !selectedBanks.some((s) => s.bic === b.bic) &&
+                !selectedBanks?.some((s) => s.bic === b.bic) &&
                 (b.name.toLowerCase().includes(search.toLowerCase()) ||
-                    b.reg_number.includes(search))
+                    b.reg_number?.toString().includes(search))
         );
 
         const selectedBics = selectedForAdd.map((b) => b.bic);

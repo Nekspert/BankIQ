@@ -30,7 +30,7 @@
   & > svg {
     width: 20px;
     height: 20px;
-    & path{
+    & path {
       stroke: $background-button-primary;
     }
   }
@@ -43,10 +43,16 @@
   line-height: 1.4;
 }
 
-.warning{
+.warning {
   font-size: 16px;
   font-weight: 700;
   color: $error;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .table-container {
@@ -185,12 +191,6 @@
   &:hover {
     color: $error;
   }
-}
-
-.controls{
-  display: flex;
-  align-items: center;
-  gap: 10px;
 }
 
 .date-controls {
