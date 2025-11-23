@@ -15,3 +15,5 @@ export const headerNavList: HeaderLink[] = [
     name: 'Общее',
   },
 ];
+
+export const DEFAULT_BANK_REGS = [1481, 2673, 1000, 1326];

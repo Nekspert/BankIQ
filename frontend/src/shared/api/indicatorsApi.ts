@@ -6,7 +6,7 @@ import type { Indicator } from '@/features/settings-modal/types';
 export interface BankIndicator {
   bic: string;
   name: string;
-  reg_number: string;
+  reg_number: number;
   internal_code: string;
   registration_date: string;
   region_code: string;

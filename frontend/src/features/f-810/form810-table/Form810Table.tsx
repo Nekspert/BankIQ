@@ -3,36 +3,37 @@ import Section from '@/shared/ui/section/Section';
 import Title from '@/shared/ui/title/Title';
 import Button from '@/shared/ui/button/Button';
 import FilterSvg from '@/shared/icons/filter.svg?react';
+import ExportSvg from '@/shared/icons/DownloadIcon.svg?react';
 import styles from './styles.module.scss';
 import { useGetAllBanks } from '@/shared/api/hooks/indicators/useGetAllBanks';
 import { useLocalStorage } from '@/shared/hooks/useLocalStorage';
 import MonthPicker from '@/shared/ui/month-picker/MonthPicker';
 import type { BankIndicator } from '@/shared/api/indicatorsApi';
 import { TableLoader } from '@/features/table-loader/TableLoader';
-import { useF123Queries } from './hooks/useF123Queries';
 import { formatNumber } from '@/features/banks-comparison/utils/format';
 import AddBankModal from '@/features/add-bank-modal/AddBankModal';
-import { F123_ROWS } from './constants';
-import ExportSvg from '@/shared/icons/DownloadIcon.svg?react';
+import { F810_COLUMNS } from './constants';
+import { useF810Queries } from './hooks/useF810Queries';
 import { DEFAULT_BANK_REGS } from '@/shared/config/constants';
 
-export const Form123Table: FC = () => {
+export const Form810Table: FC = () => {
   const { data: allBanksData } = useGetAllBanks();
   const allBanks = allBanksData?.banks ?? [];
+  console.log(allBanks.slice(0, 3));
   const now = new Date();
-  const defaultMonth = `${now.getFullYear()}-${String(now.getMonth()).padStart(2, '0')}`;
+  const defaultMonth = `2025-04`;
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [month, setMonth] = useLocalStorage<string | null>(
-    'f123-month',
+    'f810-month',
     defaultMonth
   );
   const [selectedBanks, setSelectedBanks] = useLocalStorage<BankIndicator[]>(
-    'f123-banks-list',
+    'f810-banks-list',
     allBanks.slice(0, 3)
   );
 
-  const { indicatorData, rawResults } = useF123Queries(
+  const { indicatorData, rawResults } = useF810Queries(
     selectedBanks || [],
     month
   );
@@ -69,22 +70,18 @@ export const Form123Table: FC = () => {
         <div className={styles['title-wrapper']}>
           <div>
             <Title size="large" className={styles.title}>
-              Сравнение банков (Форма 123)
+              Сравнение банков (Форма 810)
             </Title>
             <Title level={3} size="medium" className={styles.warning}>
               * все показатели указаны в тысячах ₽
             </Title>
             <div className={styles['subtitle']}>
-              Три агрегированных показателя по банку
+              Отчет об изменениях в капитале кредитной организации
             </div>
           </div>
 
           <div className={styles['controls']}>
-            <Button
-              variant="ghost"
-              className={styles['filter']}
-              // onClick={() => setIsSettingsOpen(true)}
-            >
+            <Button variant="ghost" className={styles['filter']}>
               <ExportSvg />
             </Button>
             <Button
@@ -143,13 +140,13 @@ export const Form123Table: FC = () => {
             </thead>
 
             <tbody>
-              {F123_ROWS.map((rowName) => (
-                <tr key={rowName}>
-                  <td className={styles['sticky-col']}>{rowName}</td>
+              {F810_COLUMNS.map((column) => (
+                <tr key={column.key}>
+                  <td className={styles['sticky-col']}>{column.label}</td>
 
                   {selectedBanks.map((bank) => {
                     const val =
-                      indicatorData?.[bank.reg_number]?.[rowName] ?? null;
+                      indicatorData?.[bank.reg_number]?.[column.key] ?? null;
                     const bankIndex = selectedBanks.findIndex(
                       (b) => b.reg_number === bank.reg_number
                     );
@@ -190,5 +187,3 @@ export const Form123Table: FC = () => {
     </>
   );
 };
-
-export default Form123Table;

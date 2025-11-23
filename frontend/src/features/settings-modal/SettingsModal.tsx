@@ -1,4 +1,4 @@
-import { useMemo, useState, type FC } from 'react';
+import { useEffect, useMemo, useState, type FC } from 'react';
 import PopUp from '@/shared/ui/pop-up/PopUp';
 import Button from '@/shared/ui/button/Button';
 import styles from './styles.module.scss';
@@ -10,7 +10,7 @@ import { useGetUniqueIndicators } from '@/shared/api/hooks/indicators/useGetUniq
  * Модальное окно настройки таблицы сравнения банков и показателей.
  *
  * Позволяет пользователю выбирать банки и экономические показатели,
- * а также менять их порядок и сохранять настройки. 
+ * а также менять их порядок и сохранять настройки.
  * Состояние выбора сохраняется в localStorage.
  *
  * Использует хук {@link useGetUniqueIndicators} для загрузки доступных показателей
@@ -54,14 +54,19 @@ const SettingsModal: FC<SettingsModalProps> = ({
   const { data: DEFAULT_INDICATOR_OPTIONS } = useGetUniqueIndicators();
 
   const [bankSearch, setBankSearch] = useState('');
-  const [selectedForBanks, setSelectedForBanks] = useLocalStorage<
-    BankIndicator[]
-  >('settings-selected-banks', selectedBanks);
 
-  const [localIndicators, setLocalIndicators] = useLocalStorage<Indicator[]>(
-    'selected-indicators',
-    indicators
-  );
+  const [selectedForBanks, setSelectedForBanks] =
+    useState<BankIndicator[]>(selectedBanks);
+  const [localIndicators, setLocalIndicators] =
+    useState<Indicator[]>(indicators);
+
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedForBanks(selectedBanks);
+      setLocalIndicators(indicators);
+      setBankSearch('');
+    }
+  }, [isOpen, selectedBanks, indicators]);
 
   const filteredBanks = useMemo(() => {
     const q = bankSearch.trim().toLowerCase();
@@ -85,7 +90,7 @@ const SettingsModal: FC<SettingsModalProps> = ({
     setSelectedForBanks((prev) =>
       prev.some((b) => b.bic === bank.bic)
         ? prev.filter((b) => b.bic !== bank.bic)
-        : [...(prev || []), bank]
+        : [...prev, bank]
     );
   };
 
@@ -108,13 +113,16 @@ const SettingsModal: FC<SettingsModalProps> = ({
   };
 
   const handleCancel = () => {
+    // Сбрасываем изменения при отмене
+    setSelectedForBanks(selectedBanks);
+    setLocalIndicators(indicators);
     onClose();
   };
 
   return (
     <PopUp
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleCancel}
       title="Настройки таблицы"
       size="large"
       footer={
@@ -238,9 +246,7 @@ const SettingsModal: FC<SettingsModalProps> = ({
                 <div key={d.ind_code} className={styles.addItem}>
                   <button
                     className={styles.addBtn}
-                    onClick={() =>
-                      setLocalIndicators((prev) => [...(prev || []), d])
-                    }
+                    onClick={() => setLocalIndicators((prev) => [...prev, d])}
                   >
                     + {d.name}
                   </button>

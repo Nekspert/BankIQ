@@ -9,6 +9,7 @@ import MenuIcon from './icons/menu-icon.svg?react';
 import { useScrollamaObserver } from './hooks/useScrollamaObserver';
 import { useActiveGraph } from './hooks/useActiveGraph';
 import Title from '@/shared/ui/title/Title';
+import { indicatorsF810Api } from '@/shared/api/form-810/indicatorsApi';
 
 export const GeneralPage: FC = () => {
   const [selectedIds, setSelectedIds] = useState<string[]>(
@@ -22,6 +23,16 @@ export const GeneralPage: FC = () => {
     onStepEnter: (id) => setActiveGraphOptimized(id),
     containerId: 'root',
   });
+
+  const getInfo = async () => {
+    const { data } = await indicatorsF810Api.getIndicator({
+      regNum: 1481,
+      date: '2019-01-01T00:00:00Z',
+    });
+    console.log(data);
+  };
+  getInfo();
+  // console.log()
 
   useEffect(() => {
     if (!activeGraphId && selectedIds.length > 0) {
@@ -73,7 +84,9 @@ export const GeneralPage: FC = () => {
         })}
       >
         <div className={styles.header}>
-          <Title level={1} size='xlarge'>Общая статистика, предоставляемая ЦБ РФ</Title>
+          <Title level={1} size="xlarge">
+            Общая статистика, предоставляемая ЦБ РФ
+          </Title>
         </div>
 
         <div style={{ marginBottom: 20 }}>

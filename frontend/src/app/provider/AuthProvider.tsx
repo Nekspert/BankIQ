@@ -19,7 +19,6 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const getUserData = async () => {
     const { data } = await axios.get('/12312321/');
     setLoading(false)
-    console.log(data)
     return data;
   };
 
