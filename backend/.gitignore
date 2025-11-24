@@ -6,3 +6,6 @@ __pycache__
 *.json
 tests
 *_test.*
+*.bak
+*.dat
+*.dir

@@ -3,7 +3,7 @@ import hashlib
 import json
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Tuple
+from typing import Any
 
 
 def _normalize_value(v: Any):
@@ -20,7 +20,7 @@ def _normalize_value(v: Any):
     return v
 
 
-def canonical_obj_and_hash(obj: Any) -> Tuple[dict, str]:
+def canonical_obj_and_hash(obj: Any) -> tuple[dict | list, str]:
     """
     Возвращает (canonical_obj_as_python, sha256_hex).
     canonical_obj_as_python — это нормализованный python-объект (dict/list) готовый для JSONField.
