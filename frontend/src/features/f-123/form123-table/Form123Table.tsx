@@ -15,6 +15,7 @@ import AddBankModal from '@/features/add-bank-modal/AddBankModal';
 import { F123_ROWS } from './constants';
 import ExportSvg from '@/shared/icons/DownloadIcon.svg?react';
 import { DEFAULT_BANK_REGS } from '@/shared/config/constants';
+import { exportForm123 } from '@/shared/utils/export/formExporters';
 
 export const Form123Table: FC = () => {
   const { data: allBanksData } = useGetAllBanks();
@@ -43,6 +44,10 @@ export const Form123Table: FC = () => {
 
   const handleRemoveBank = (bic: string) => {
     setSelectedBanks((prev) => prev?.filter((b) => b.bic !== bic));
+  };
+
+  const handleExport = () => {
+    exportForm123(selectedBanks, indicatorData, month, F123_ROWS);
   };
 
   useEffect(() => {
@@ -83,7 +88,7 @@ export const Form123Table: FC = () => {
             <Button
               variant="ghost"
               className={styles['filter']}
-              // onClick={() => setIsSettingsOpen(true)}
+              onClick={handleExport}
             >
               <ExportSvg />
             </Button>

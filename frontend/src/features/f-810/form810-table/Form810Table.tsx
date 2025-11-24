@@ -15,12 +15,11 @@ import AddBankModal from '@/features/add-bank-modal/AddBankModal';
 import { F810_COLUMNS } from './constants';
 import { useF810Queries } from './hooks/useF810Queries';
 import { DEFAULT_BANK_REGS } from '@/shared/config/constants';
+import { exportForm810 } from '@/shared/utils/export/formExporters';
 
 export const Form810Table: FC = () => {
   const { data: allBanksData } = useGetAllBanks();
   const allBanks = allBanksData?.banks ?? [];
-  console.log(allBanks.slice(0, 3));
-  const now = new Date();
   const defaultMonth = `2025-04`;
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -44,6 +43,10 @@ export const Form810Table: FC = () => {
 
   const handleRemoveBank = (bic: string) => {
     setSelectedBanks((prev) => prev?.filter((b) => b.bic !== bic));
+  };
+
+  const handleExport = () => {
+    exportForm810(selectedBanks, indicatorData, month, F810_COLUMNS);
   };
 
   useEffect(() => {
@@ -81,7 +84,11 @@ export const Form810Table: FC = () => {
           </div>
 
           <div className={styles['controls']}>
-            <Button variant="ghost" className={styles['filter']}>
+            <Button
+              variant="ghost"
+              className={styles['filter']}
+              onClick={handleExport}
+            >
               <ExportSvg />
             </Button>
             <Button

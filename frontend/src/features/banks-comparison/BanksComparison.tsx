@@ -11,7 +11,8 @@ import { formatNumber } from './utils/format';
 import MonthPicker from '@/shared/ui/month-picker/MonthPicker';
 import ToggleSwitch from '@/shared/ui/toggle-switch/ToggleSwitch';
 import type { CSSProperties } from 'react';
-import ExportSvg from '@/shared/icons/DownloadIcon.svg?react'
+import ExportSvg from '@/shared/icons/DownloadIcon.svg?react';
+import { exportForm101 } from '@/shared/utils/export/formExporters';
 
 /**
  * Компонент **BanksComparison** — основной экран для сравнения финансовых показателей банков.
@@ -75,6 +76,17 @@ export const BanksComparison = () => {
     return new Date(y, m - 1, 1);
   };
 
+  const handleExport = () => {
+    exportForm101(
+      selectedBanks,
+      selectedIndicators,
+      indicatorData,
+      fromMonth,
+      toMonth,
+      showDynamics
+    );
+  };
+
   return (
     <>
       <Section
@@ -94,7 +106,7 @@ export const BanksComparison = () => {
             <Button
               variant="ghost"
               className={styles['filter']}
-              // onClick={() => setIsSettingsOpen(true)}
+              onClick={handleExport}
             >
               <ExportSvg />
             </Button>
