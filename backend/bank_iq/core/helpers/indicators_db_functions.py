@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 
 from django.db import IntegrityError, transaction
@@ -6,7 +7,8 @@ from banks.models import Bank, BankDatesRequest, BankDatesResponse
 from banks.serializers import BankInfoSerializer
 from core.parsers.soap.all_banks_parser import CbrAllBanksParser
 from core.utils.hash_utils import canonical_obj_and_hash
-from indicators.models import BankIndicatorDataRequest, BankIndicatorsRequest, BankIndicatorsResponse, FormType
+from indicators.models import BankIndicatorDataRequest, BankIndicatorDataResponse, BankIndicatorsRequest, \
+    BankIndicatorsResponse, FormType
 
 
 def _get_all_banks_from_db():
@@ -120,7 +122,11 @@ def _create_or_get_bank_indicators_data_request_atomic(bank: Bank, form_type: Fo
                     date_to=date_to,
                     dt=dt)
     except IntegrityError:
-        obj = _find_existing_bank_indicators_data_request(reg_number, ind_code, date_from, date_to)
+        obj = _find_existing_bank_indicators_data_request(
+                bank=bank, form_type=form_type, reg_number=reg_number, ind_code=ind_code,
+                date_from=date_from,
+                date_to=date_to,
+                dt=dt)
     return obj
 
 
@@ -128,12 +134,11 @@ def _update_or_create_datetimes_response(bank: Bank,
                                          form_type: FormType,
                                          datetimes_obj) -> tuple[bool, list[str], list[str], dict]:
     """
-    datetimes_obj — python-структура (list/dict) возвращаемая сериализатором/парсером.
+    datetimes_obj — python dict возвращаемая сериализатором/парсером.
     Создаёт/обновляет BankDatesRequest и BankDatesResponse, только если hash изменился.
-    Возвращает tuple (created_or_updated: bool, added_dates:list, removed_dates:list)
+    Возвращает tuple (created_or_updated: bool, added_dates:list, removed_dates:list, canonical_obj:dict)
     """
     req = _create_or_get_datetimes_request_atomic(bank, form_type, {'reg_number': bank.reg_number})
-
     canonical_obj, new_hash = canonical_obj_and_hash(datetimes_obj)
 
     with transaction.atomic():
@@ -145,7 +150,7 @@ def _update_or_create_datetimes_response(bank: Bank,
         if existing_resp:
             existing_resp.datetimes = canonical_obj
             existing_resp.data_hash = new_hash
-            existing_resp.save(update_fields=['datetimes', 'data_hash', 'updated_at'])
+            existing_resp.save(update_fields=('datetimes', 'data_hash', 'updated_at'))
             created_or_updated = True
         else:
             BankDatesResponse.objects.create(request=req_locked, datetimes=canonical_obj, data_hash=new_hash)
@@ -181,7 +186,6 @@ def _update_or_create_indicators_response(
     - canonical_obj: нормализованный объект (подходит для записи в JSONField)
     """
     req = _create_or_get_indicators_request_atomic(bank=bank, form_type=form_type, params=params)
-
     canonical_obj, new_hash = canonical_obj_and_hash(indicators_obj)
 
     with transaction.atomic():
@@ -195,7 +199,7 @@ def _update_or_create_indicators_response(
 
             existing_resp.indicators = canonical_obj
             existing_resp.data_hash = new_hash
-            existing_resp.save(update_fields=['indicators', 'data_hash', 'updated_at'])
+            existing_resp.save(update_fields=('indicators', 'data_hash', 'updated_at'))
             created_or_updated = True
         else:
             BankIndicatorsResponse.objects.create(request=req_locked, indicators=canonical_obj, data_hash=new_hash)
@@ -208,6 +212,98 @@ def _update_or_create_indicators_response(
                      isinstance(item, dict) and item.get('ind_code') is not None}
         added = sorted(list(new_codes - old_codes))
         removed = sorted(list(old_codes - new_codes))
+    except Exception:
+        added = []
+        removed = []
+
+    return created_or_updated, added, removed, canonical_obj
+
+
+def _update_or_create_bank_indicator_data_response(
+        bank: Bank,
+        form_type: FormType,
+        params: dict,
+        bank_indicator_obj: list[dict]) -> tuple[bool, list[str], list[str], list[dict]]:
+    """
+    Обновляет или создаёт BankIndicatorDataResponse для конкретного запроса (bank+form_type+params),
+    только если хэш (sha256) нового payload'а отличается от сохранённого.
+
+    params: словарь с ключами: 'reg_number' (int), опционально 'ind_code' (str),
+            'date_from' (datetime или None), 'date_to' (datetime или None), 'dt' (datetime или None)
+            (эти ключи используются внутри _create_or_get_bank_indicators_data_request_atomic).
+
+    bank_indicator_obj: python-структура (обычно список словарей), возвращаемая парсером,
+                        либо структура, которая будет записана в JSONField.
+
+    Возвращает кортеж:
+        (created_or_updated: bool,
+         added: list[str],    # список ключей дат/идентификаторов, которые добавились
+         removed: list[str],  # список ключей, которые удалились
+         canonical_obj)       # нормализованный payload (той формы, что записан в JSONField)
+
+    Защита от гонок: используется transaction.atomic + select_for_update на request.
+    """
+
+    req = _create_or_get_bank_indicators_data_request_atomic(
+            bank=bank,
+            form_type=form_type,
+            reg_number=params.get('reg_number'),
+            ind_code=params.get('ind_code'),
+            date_from=params.get('date_from'),
+            date_to=params.get('date_to'),
+            dt=params.get('dt'),
+    )
+
+    canonical_obj, new_hash = canonical_obj_and_hash(bank_indicator_obj)
+
+    with transaction.atomic():
+        req_locked = BankIndicatorDataRequest.objects.select_for_update().get(pk=req.pk)
+        existing_response = getattr(req_locked, 'response', None)
+
+        if existing_response and getattr(existing_response, 'data_hash', None) == new_hash:
+            return False, [], [], canonical_obj
+
+        old_list = []
+        if existing_response:
+            old_list = getattr(existing_response, 'bank_indicator_data', []) or []
+
+            existing_response.bank_indicator_data = canonical_obj
+            existing_response.data_hash = new_hash
+            existing_response.save(update_fields=('bank_indicator_data', 'data_hash', 'updated_at'))
+            created_or_updated = True
+        else:
+            BankIndicatorDataResponse.objects.create(
+                    request=req_locked,
+                    bank_indicator_data=canonical_obj,
+                    data_hash=new_hash)
+            created_or_updated = True
+
+    try:
+        def _key_of(item) -> str:
+            # Приоритет: date -> dt -> name -> bank_reg_number + сериализация -> сериализация
+            if isinstance(item, dict):
+                if 'date' in item and item.get('date') is not None:
+                    return str(item['date'])
+                if 'dt' in item and item.get('dt') is not None:
+                    return str(item['dt'])
+                if 'name' in item and item.get('name') is not None:
+                    name_key = str(item['name'])
+                    brn = item.get('bank_reg_number')
+                    return f"{brn}|{name_key}" if brn is not None else name_key
+                if 'bank_reg_number' in item and item.get('bank_reg_number') is not None:
+                    return f"{item.get('bank_reg_number')}|{json.dumps(item, sort_keys=True, separators=(',', ':'))}"
+            return json.dumps(item, sort_keys=True, separators=(',', ':'))
+
+        old_keys = {_key_of(it) for it in (old_list or [])}
+
+        if isinstance(canonical_obj, list):
+            new_list = canonical_obj
+        else:
+            new_list = []
+
+        new_keys = {_key_of(it) for it in (new_list or [])}
+        added = sorted(list(new_keys - old_keys))
+        removed = sorted(list(old_keys - new_keys))
     except Exception:
         added = []
         removed = []

@@ -13,6 +13,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
     env_file:
       - backend/.env
     environment:
@@ -60,6 +62,60 @@ services:
       - "5432:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
+    networks:
+      - bankIQ
+
+  redis:
+    image: redis:7
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: 3
+    networks:
+      - bankIQ
+
+  celery_worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: celery_worker
+    command: ["celery", "-A", "bank_iq", "worker", "-l", "info"]
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    env_file:
+      - backend/.env
+    environment:
+      - DATABASE_URL=postgres://postgres:1234@db:5432/bankiq
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    networks:
+      - bankIQ
+
+  celery_beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: celery_beat
+    command: ["celery", "-A", "bank_iq", "beat", "-l", "info"]
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    env_file:
+      - backend/.env
+    environment:
+      - DATABASE_URL=postgres://postgres:1234@db:5432/bankiq
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
     networks:
       - bankIQ
 
