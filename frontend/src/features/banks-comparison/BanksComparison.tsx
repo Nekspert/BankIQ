@@ -10,9 +10,11 @@ import { useBanksComparison } from './hooks/useBanksComparison';
 import { formatNumber } from './utils/format';
 import MonthPicker from '@/shared/ui/month-picker/MonthPicker';
 import ToggleSwitch from '@/shared/ui/toggle-switch/ToggleSwitch';
-import type { CSSProperties } from 'react';
+import { useState, type CSSProperties } from 'react';
 import ExportSvg from '@/shared/icons/DownloadIcon.svg?react';
 import { exportForm101 } from '@/shared/utils/export/formExporters';
+import type { ExportFormat } from '@/shared/utils/export/tableExport';
+import ExportMenu from '@/shared/ui/export-menu/ExportMenu';
 
 /**
  * Компонент **BanksComparison** — основной экран для сравнения финансовых показателей банков.
@@ -76,14 +78,15 @@ export const BanksComparison = () => {
     return new Date(y, m - 1, 1);
   };
 
-  const handleExport = () => {
+  const handleExport = (format: ExportFormat) => {
     exportForm101(
       selectedBanks,
       selectedIndicators,
       indicatorData,
       fromMonth,
       toMonth,
-      showDynamics
+      showDynamics,
+      format
     );
   };
 
@@ -103,13 +106,7 @@ export const BanksComparison = () => {
             </div>
           </Title>
           <div className={styles['controls']}>
-            <Button
-              variant="ghost"
-              className={styles['filter']}
-              onClick={handleExport}
-            >
-              <ExportSvg />
-            </Button>
+            <ExportMenu onExport={handleExport} />
             <Button
               variant="ghost"
               className={styles['filter']}

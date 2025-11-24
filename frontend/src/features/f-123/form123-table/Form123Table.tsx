@@ -16,6 +16,8 @@ import { F123_ROWS } from './constants';
 import ExportSvg from '@/shared/icons/DownloadIcon.svg?react';
 import { DEFAULT_BANK_REGS } from '@/shared/config/constants';
 import { exportForm123 } from '@/shared/utils/export/formExporters';
+import type { ExportFormat } from '@/shared/utils/export/tableExport';
+import ExportMenu from '@/shared/ui/export-menu/ExportMenu';
 
 export const Form123Table: FC = () => {
   const { data: allBanksData } = useGetAllBanks();
@@ -46,8 +48,8 @@ export const Form123Table: FC = () => {
     setSelectedBanks((prev) => prev?.filter((b) => b.bic !== bic));
   };
 
-  const handleExport = () => {
-    exportForm123(selectedBanks, indicatorData, month, F123_ROWS);
+  const handleExport = (format: ExportFormat) => {
+    exportForm123(selectedBanks, indicatorData, month, F123_ROWS, format);
   };
 
   useEffect(() => {
@@ -85,13 +87,7 @@ export const Form123Table: FC = () => {
           </div>
 
           <div className={styles['controls']}>
-            <Button
-              variant="ghost"
-              className={styles['filter']}
-              onClick={handleExport}
-            >
-              <ExportSvg />
-            </Button>
+            <ExportMenu onExport={handleExport} />
             <Button
               variant="ghost"
               className={styles['filter']}

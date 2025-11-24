@@ -16,6 +16,8 @@ import { F810_COLUMNS } from './constants';
 import { useF810Queries } from './hooks/useF810Queries';
 import { DEFAULT_BANK_REGS } from '@/shared/config/constants';
 import { exportForm810 } from '@/shared/utils/export/formExporters';
+import type { ExportFormat } from '@/shared/utils/export/tableExport';
+import ExportMenu from '@/shared/ui/export-menu/ExportMenu';
 
 export const Form810Table: FC = () => {
   const { data: allBanksData } = useGetAllBanks();
@@ -45,8 +47,8 @@ export const Form810Table: FC = () => {
     setSelectedBanks((prev) => prev?.filter((b) => b.bic !== bic));
   };
 
-  const handleExport = () => {
-    exportForm810(selectedBanks, indicatorData, month, F810_COLUMNS);
+  const handleExport = (format: ExportFormat) => {
+    exportForm810(selectedBanks, indicatorData, month, F810_COLUMNS, format);
   };
 
   useEffect(() => {
@@ -84,13 +86,7 @@ export const Form810Table: FC = () => {
           </div>
 
           <div className={styles['controls']}>
-            <Button
-              variant="ghost"
-              className={styles['filter']}
-              onClick={handleExport}
-            >
-              <ExportSvg />
-            </Button>
+            <ExportMenu onExport={handleExport} />
             <Button
               variant="ghost"
               className={styles['filter']}
