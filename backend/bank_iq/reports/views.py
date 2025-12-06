@@ -13,6 +13,8 @@ from .serializers import (CheckRequestSerializer, CheckResponseSerializer,
 
 
 class CheckValidDataAPIView(APIView):
+    authentication_classes = []
+
     @extend_schema(
             summary="Список публикаций / датасетов / разрезов / лет (проверка доступных параметров)",
             description=(
@@ -144,6 +146,8 @@ class CheckValidDataAPIView(APIView):
 
 
 class InterestRatesCreditAPIView(APIView):
+    authentication_classes = []
+
     @extend_schema(
             summary="Получение данных о процентных ставках по кредитам",
             description=(
@@ -261,6 +265,8 @@ class InterestRatesCreditAPIView(APIView):
 
 
 class InterestRatesDepositAPIView(APIView):
+    authentication_classes = []
+
     @extend_schema(
             summary="Получение данных о процентных ставках по депозитам",
             description=(

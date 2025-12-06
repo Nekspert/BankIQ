@@ -19,6 +19,10 @@ app.conf.beat_schedule = {
         'task': 'core.tasks.update_all_bank_api_info',
         'schedule': crontab(minute=0, hour=0, day_of_month='1'),
     },
+    'daily-cleanup-tokens': {
+        'task': 'accounts.tasks.cleanup_old_tokens',
+        'schedule': crontab(hour=0, day_of_week=1),
+    }
 }
 
 

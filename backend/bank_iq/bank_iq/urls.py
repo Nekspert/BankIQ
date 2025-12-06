@@ -9,6 +9,7 @@ urlpatterns = [
     path('api/', include('reports.urls')),
     path('api/', include('banks.urls')),
     path('api/', include('indicators.urls')),
+    path('api/', include('accounts.urls')),
 
     # Генерация OpenAPI схемы
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),

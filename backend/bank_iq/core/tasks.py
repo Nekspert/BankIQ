@@ -121,7 +121,7 @@ def update_all_bank_api_info(self):
                         bank_indicator_obj=bank_indicator_data,
                         params={'reg_number': reg, 'dt': parsed_dt}
                 )
-                logger.info(
+                logger.debug(
                         "Saved F810 for bank %s dt=%s -> upd=%s added=%d removed=%d",
                         bank_data['name'], parsed_dt.isoformat(), created_or_updated,
                         len(added) if added is not None else 0,
@@ -138,7 +138,7 @@ def update_all_bank_api_info(self):
                     bank=bank_obj, form_type=form123_obj, datetimes_obj=datetimes_data)
             if not datetimes_data:
                 continue
-            logger.info(f'Updated datetimes for form123 and bank {bank_data["name"]} = {created_or_updated}'
+            logger.debug(f'Updated datetimes for form123 and bank {bank_data["name"]} = {created_or_updated}'
                         f' Added = {added}, removed = {removed}')
 
             for dt in datetimes_data.get('datetimes', []):
@@ -158,7 +158,7 @@ def update_all_bank_api_info(self):
                                 'reg_number': reg, 'dt': parsed_dt})
                     if not indicators_data:
                         continue
-                    logger.info(f'Updated indicators for form123 and bank {bank_data["name"]} = {created_or_updated}'
+                    logger.debug(f'Updated indicators for form123 and bank {bank_data["name"]} = {created_or_updated}'
                                 f' Added = {added}, removed = {removed}')
 
                     bank_indicator_data = Form123Parser.get_data123_form_full(reg, dt)
@@ -173,7 +173,7 @@ def update_all_bank_api_info(self):
                                                                            params={'reg_number': reg, 'dt': parsed_dt}))
                         if not bank_indicator_data:
                             continue
-                        logger.info(
+                        logger.debug(
                                 f'Updated bank indicator data for form123 and bank {bank_data["name"]} = {created_or_updated}'
                                 f' Added = {added}, removed = {removed}')
 
@@ -187,7 +187,7 @@ def update_all_bank_api_info(self):
                     bank=bank_obj, form_type=form101_obj, datetimes_obj=datetimes_data)
             if not datetimes_data:
                 continue
-            logger.info(f'Updated datetimes for form101 and bank {bank_data["name"]} = {created_or_updated}'
+            logger.debug(f'Updated datetimes for form101 and bank {bank_data["name"]} = {created_or_updated}'
                         f' Added = {added}, removed = {removed}')
 
             MAX_WORKERS = 10  # число потоков для параллельных запросов
@@ -249,7 +249,7 @@ def update_all_bank_api_info(self):
 
                 n = len(dates_sorted)
                 pair_count = n * (n + 1) // 2
-                logger.info('Indicator %s: %d dates -> %d pairs', ind_code, n, pair_count)
+                logger.debug('Indicator %s: %d dates -> %d pairs', ind_code, n, pair_count)
 
                 pair_gen = generate_all_pairs(dates_sorted)
 
@@ -292,7 +292,7 @@ def update_all_bank_api_info(self):
                                             params=params_pair,
                                             bank_indicator_obj=payload_list
                                     )
-                                    logger.info(f'Updated bank indicator data for form101 bank={bank_data["name"]}. '
+                                    logger.debug(f'Updated bank indicator data for form101 bank={bank_data["name"]}. '
                                                 'Pair %s..%s saved: upd=%s added=%d removed=%d',
                                                 df.isoformat(), dt.isoformat(), created_or_updated, len(added),
                                                 len(removed))
@@ -329,14 +329,14 @@ def update_all_bank_api_info(self):
                                         params=params_pair,
                                         bank_indicator_obj=payload_list
                                 )
-                                logger.info(f'Updated bank indicator data for form101 bank={bank_data["name"]}. '
+                                logger.debug(f'Updated bank indicator data for form101 bank={bank_data["name"]}. '
                                             'Pair %s..%s saved: upd=%s added=%d removed=%d',
                                             df.isoformat(), dt.isoformat(), created_or_updated, len(added),
                                             len(removed))
                             except Exception as e:
                                 logger.exception('DB save error for %s %s..%s: %s', ind_code, df, dt, e)
 
-                logger.info('Finished indicator %s: processed pairs=%d', ind_code, processed_pairs)
+                logger.debug('Finished indicator %s: processed pairs=%d', ind_code, processed_pairs)
 
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=60)
@@ -433,7 +433,7 @@ def update_all_bank_api_info(self):
                         bank_indicator_obj=bank_indicator_data,
                         params={'reg_number': reg, 'dt': parsed_dt}
                 )
-                logger.info(
+                logger.debug(
                         "Saved F810 for bank %s dt=%s -> upd=%s added=%d removed=%d",
                         bank_data['name'], parsed_dt.isoformat(), created_or_updated,
                         len(added) if added is not None else 0,
@@ -450,7 +450,7 @@ def update_all_bank_api_info(self):
                     bank=bank_obj, form_type=form123_obj, datetimes_obj=datetimes_data)
             if not datetimes_data:
                 continue
-            logger.info(f'Updated datetimes for form123 and bank {bank_data["name"]} = {created_or_updated}'
+            logger.debug(f'Updated datetimes for form123 and bank {bank_data["name"]} = {created_or_updated}'
                         f' Added = {added}, removed = {removed}')
 
             for dt in datetimes_data.get('datetimes', []):
@@ -470,7 +470,7 @@ def update_all_bank_api_info(self):
                                 'reg_number': reg, 'dt': parsed_dt})
                     if not indicators_data:
                         continue
-                    logger.info(f'Updated indicators for form123 and bank {bank_data["name"]} = {created_or_updated}'
+                    logger.debug(f'Updated indicators for form123 and bank {bank_data["name"]} = {created_or_updated}'
                                 f' Added = {added}, removed = {removed}')
 
                     bank_indicator_data = Form123Parser.get_data123_form_full(reg, dt)
@@ -485,7 +485,7 @@ def update_all_bank_api_info(self):
                                                                            params={'reg_number': reg, 'dt': parsed_dt}))
                         if not bank_indicator_data:
                             continue
-                        logger.info(
+                        logger.debug(
                                 f'Updated bank indicator data for form123 and bank {bank_data["name"]} = {created_or_updated}'
                                 f' Added = {added}, removed = {removed}')
 
@@ -499,7 +499,7 @@ def update_all_bank_api_info(self):
                     bank=bank_obj, form_type=form101_obj, datetimes_obj=datetimes_data)
             if not datetimes_data:
                 continue
-            logger.info(f'Updated datetimes for form101 and bank {bank_data["name"]} = {created_or_updated}'
+            logger.debug(f'Updated datetimes for form101 and bank {bank_data["name"]} = {created_or_updated}'
                         f' Added = {added}, removed = {removed}')
 
             MAX_WORKERS = 10  # число потоков для параллельных запросов
@@ -561,7 +561,7 @@ def update_all_bank_api_info(self):
 
                 n = len(dates_sorted)
                 pair_count = n * (n + 1) // 2
-                logger.info('Indicator %s: %d dates -> %d pairs', ind_code, n, pair_count)
+                logger.debug('Indicator %s: %d dates -> %d pairs', ind_code, n, pair_count)
 
                 pair_gen = generate_all_pairs(dates_sorted)
 
@@ -604,7 +604,7 @@ def update_all_bank_api_info(self):
                                             params=params_pair,
                                             bank_indicator_obj=payload_list
                                     )
-                                    logger.info(f'Updated bank indicator data for form101 bank={bank_data["name"]}. '
+                                    logger.debug(f'Updated bank indicator data for form101 bank={bank_data["name"]}. '
                                                 'Pair %s..%s saved: upd=%s added=%d removed=%d',
                                                 df.isoformat(), dt.isoformat(), created_or_updated, len(added),
                                                 len(removed))
@@ -641,14 +641,14 @@ def update_all_bank_api_info(self):
                                         params=params_pair,
                                         bank_indicator_obj=payload_list
                                 )
-                                logger.info(f'Updated bank indicator data for form101 bank={bank_data["name"]}. '
+                                logger.debug(f'Updated bank indicator data for form101 bank={bank_data["name"]}. '
                                             'Pair %s..%s saved: upd=%s added=%d removed=%d',
                                             df.isoformat(), dt.isoformat(), created_or_updated, len(added),
                                             len(removed))
                             except Exception as e:
                                 logger.exception('DB save error for %s %s..%s: %s', ind_code, df, dt, e)
 
-                logger.info('Finished indicator %s: processed pairs=%d', ind_code, processed_pairs)
+                logger.debug('Finished indicator %s: processed pairs=%d', ind_code, processed_pairs)
 
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=60)
@@ -747,7 +747,7 @@ def update_all_reports_api_info(self):
                     logger.debug('Another worker saved params-check response for %s', params)
                     return req_locked, req_locked.response.processed_data
                 CbrApiDataResponse.objects.create(request=req_locked, processed_data=processed)
-                logger.info('Saved params-check response for %s', params)
+                logger.debug('Saved params-check response for %s', params)
         except Exception:
             logger.exception('Failed to save params-check response for %s', params)
 
@@ -820,7 +820,7 @@ def update_all_reports_api_info(self):
                     continue
                 avail_from, avail_to = years
                 year_pairs = _generate_year_pairs(avail_from, avail_to, min_start=2018)
-                logger.info('CREDIT pub=%s ds=%s measure=%s -> %d year pairs (from %s to %s)',
+                logger.debug('CREDIT pub=%s ds=%s measure=%s -> %d year pairs (from %s to %s)',
                             pub, ds, m, len(year_pairs), avail_from, avail_to)
 
                 for from_year, to_year in year_pairs:
@@ -868,7 +868,7 @@ def update_all_reports_api_info(self):
                             if hasattr(req_locked, 'response') and req_locked.response is not None:
                                 continue
                             CbrApiDataResponse.objects.create(request=req_locked, processed_data=processed)
-                            logger.info('Saved CREDIT response for %s', params)
+                            logger.debug('Saved CREDIT response for %s', params)
                     except Exception:
                         logger.exception('Failed to save CREDIT response for %s', params)
 
@@ -885,7 +885,7 @@ def update_all_reports_api_info(self):
                     continue
                 avail_from, avail_to = years
                 year_pairs = _generate_year_pairs(avail_from, avail_to, min_start=2018)
-                logger.info('DEPOSIT pub=%s ds=%s measure=%s -> %d year pairs (from %s to %s)',
+                logger.debug('DEPOSIT pub=%s ds=%s measure=%s -> %d year pairs (from %s to %s)',
                             pub, ds, m, len(year_pairs), avail_from, avail_to)
 
                 for from_year, to_year in year_pairs:
@@ -935,7 +935,7 @@ def update_all_reports_api_info(self):
                             if hasattr(req_locked, 'response') and req_locked.response is not None:
                                 continue
                             CbrApiDataResponse.objects.create(request=req_locked, processed_data=processed)
-                            logger.info('Saved DEPOSIT response for %s', params)
+                            logger.debug('Saved DEPOSIT response for %s', params)
                     except Exception:
                         logger.exception('Failed to save DEPOSIT response for %s', params)
 

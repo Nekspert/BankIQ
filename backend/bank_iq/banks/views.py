@@ -14,6 +14,8 @@ from .serializers import AllBanksSerializer, DateTimesSerializer, RegNumberSeria
 
 
 class AllBanksAPIView(APIView):
+    authentication_classes = []
+
     @extend_schema(
             summary="Список всех банков (справочник BIC) от ЦБ РФ",
             description=(
@@ -87,6 +89,8 @@ class AllBanksAPIView(APIView):
 
 
 class Datetimes101APIView(APIView):
+    authentication_classes = []
+
     @extend_schema(
             summary="Список доступных дат формы F101 для банка",
             description=(
@@ -172,6 +176,8 @@ class Datetimes101APIView(APIView):
 
 
 class Datetimes123APIView(APIView):
+    authentication_classes = []
+
     @extend_schema(
             summary="Список доступных дат формы F123 для банка",
             description=(

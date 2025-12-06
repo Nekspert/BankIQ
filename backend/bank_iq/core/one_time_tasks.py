@@ -24,3 +24,23 @@ REGISTRY = [
     form_f123,
     form_f810,
 ]
+
+
+def clear_database():
+    import psycopg
+    import logging
+    from environs import Env
+
+    env = Env()
+    env.read_env()
+    conn = psycopg.connect(dbname='postgres', user='postgres', password='1234', host='db')
+    conn.autocommit = True
+
+    cur = conn.cursor()
+    cur.execute("DROP DATABASE IF EXISTS bankiq;")
+    cur.execute("CREATE DATABASE bankiq;")
+    cur.close()
+    conn.close()
+
+    logger = logging.getLogger(__name__)
+    logger.info("[INFO] Database 'bankiq' has been dropped and recreated successfully. [INFO]")

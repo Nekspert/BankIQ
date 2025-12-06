@@ -165,16 +165,3 @@ class Form810Parser:
         except Exception as e:
             logger.exception("Unexpected error in GetF810Xml: %s", e)
             return {'message': f'Внутренняя ошибка: {str(e)}'}
-
-
-# if __name__ == '__main__':
-#     banks = CbrAllBanksParser.parse()
-#     for bank in banks['banks']:
-#         reg_number = bank['reg_number']
-#         name = bank['name']
-#         print(name, reg_number)
-#         parsed = Form810Parser.parse(reg_number, datetime(2019, 1, 1))
-#         # print("on_date:", parsed.get('on_date'), "rows count:", len(parsed.get('rows', [])))
-#         # for row in parsed.get('rows', []):
-#         #     print(row)
-#         print(parsed)

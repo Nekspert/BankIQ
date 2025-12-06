@@ -10,6 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 import os
+import sys
+from datetime import timedelta
 from pathlib import Path
 
 import dj_database_url
@@ -44,12 +46,15 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'drf_spectacular',
+    'storages',
+    'rest_framework_simplejwt.token_blacklist',
 
     'core',
     'reports.apps.ReportsConfig',
     'indicators.apps.IndicatorsConfig',
     'exports.apps.ExportsConfig',
     'banks.apps.BanksConfig',
+    'accounts.apps.AccountsConfig',
 ]
 
 MIDDLEWARE = [
@@ -126,19 +131,30 @@ USE_TZ = False
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+AUTH_USER_MODEL = 'accounts.CustomUser'
+
 REST_FRAMEWORK = {
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',  # Схема для автоматической генерации API-документации
-    'DEFAULT_AUTHENTICATION_CLASSES': [],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
-    ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_AUTHENTICATION_CLASSES': ['rest_framework_simplejwt.authentication.JWTAuthentication', ],
+    'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.AllowAny', ],
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+
+    'ALGORITHM': 'HS256',
+
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "UPDATE_LAST_LOGIN": True,
 }
 
 # Настройки для drf-spectacular
@@ -148,7 +164,82 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '1.0.0',  # Версия API
     'SERVE_INCLUDE_SCHEMA': False,  # Отключение схемы в ответах API,
     'SCHEMA_PATH_PREFIX': r'/api/',
+
+    'COMPONENTS': {
+        'securitySchemes': {
+            'bearerAuth': {
+                'type': 'http',
+                'scheme': 'bearer',
+                'bearerFormat': 'JWT',
+            }
+        }
+    },
+    'SECURITY_REQUIREMENTS': None,
+    'COMPONENT_SPLIT_REQUEST': True,
 }
 
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER", "redis://redis:6379/0")
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_BROKER", "redis://redis:6379/0")
+
+DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+
+AWS_S3_ENDPOINT_URL = os.environ.get("MINIO_ENDPOINT", "http://127.0.0.1:9000")
+AWS_ACCESS_KEY_ID = os.environ.get("MINIO_ACCESS_KEY", "minio-access-key")
+AWS_SECRET_ACCESS_KEY = os.environ.get("MINIO_SECRET_KEY", "minio-secret-key")
+AWS_STORAGE_BUCKET_NAME = os.environ.get("MINIO_BUCKET", "bankiq-media")
+
+AWS_S3_ADDRESSING_STYLE = "path"
+AWS_S3_SECURE = os.getenv("MINIO_SECURE", "0") != "0"
+AWS_S3_USE_SSL = None  # "public-read" (все могут читать)
+AWS_QUERYSTRING_AUTH = True  # если хотите публичные URL (без подписей)
+AWS_S3_FILE_OVERWRITE = False
+AWS_DEFAULT_ACL = 'private'
+
+STATIC_URL = "/static/"
+
+if AWS_S3_ENDPOINT_URL:
+    MEDIA_URL = f"{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/"
+else:
+    MEDIA_URL = "/media/"
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,  # важно — не отключать логи Django и библиотек
+    "formatters": {
+        "verbose": {
+            "format": "%(asctime)s %(levelname)-8s %(name)s:%(lineno)d %(message)s"
+        },
+        "simple": {
+            "format": "%(levelname)-8s %(name)s: %(message)s"
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "stream": sys.stdout,
+            "formatter": "verbose",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
+    },
+    "loggers": {
+        # Логи Django (для избегания громоздких debug-логов можно поставить INFO)
+        "django": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        # Приложение — подставить корневой модуль проекта или другой модуль
+        "bank_iq": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        # Подключим библиотеки (опционально) чтобы видеть ошибки s3/boto3
+        "botocore": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        "boto3": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        "storages": {"handlers": ["console"], "level": "INFO", "propagate": False},
+    },
+}

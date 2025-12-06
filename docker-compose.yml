@@ -15,6 +15,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+      minio:
+        condition: service_healthy
     env_file:
       - backend/.env
     environment:
@@ -28,13 +30,21 @@ services:
     build:
       context: ./backend
     container_name: migrations
-    command: ['/bin/sh', '-c', 'python manage.py migrate && python manage.py init_formtypes']
+    command: [
+      '/bin/sh',
+      '-c',
+      'python -c "from core.one_time_tasks import clear_database; clear_database()" &&
+        python manage.py migrate &&
+        python manage.py init_formtypes &&
+        python manage.py init_admin_user' ]
     environment:
       - DATABASE_URL=postgres://postgres:1234@db:5432/bankiq
     networks:
       - bankIQ
     depends_on:
       db:
+        condition: service_healthy
+      minio:
         condition: service_healthy
     restart: no
 
@@ -49,7 +59,7 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-1234}
       - POSTGRES_DB=${POSTGRES_DB:-bankiq}
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} "]
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} " ]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -84,7 +94,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: celery_worker
-    command: ["celery", "-A", "bank_iq", "worker", "-l", "info"]
+    command: [ "celery", "-A", "bank_iq", "worker", "-l", "info" ]
     depends_on:
       db:
         condition: service_healthy
@@ -104,7 +114,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: celery_beat
-    command: ["celery", "-A", "bank_iq", "beat", "-l", "info"]
+    command: [ "celery", "-A", "bank_iq", "beat", "-l", "info" ]
     depends_on:
       db:
         condition: service_healthy
@@ -116,6 +126,35 @@ services:
       - DATABASE_URL=postgres://postgres:1234@db:5432/bankiq
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    networks:
+      - bankIQ
+
+  minio:
+    image: quay.io/minio/minio:latest
+    container_name: minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    env_file:
+      - backend/.env
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ACCESS_KEY:-minio-access-key}
+      - MINIO_ROOT_PASSWORD=${MINIO_SECRET_KEY:-minio-secret-key}
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -fsS http://127.0.0.1:9000/minio/health/ready || exit 1" ]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - bankIQ
 
@@ -133,7 +172,7 @@ services:
     volumes:
       - ./frontend:/app
       - frontend_node_modules:/app/node_modules
-    command: ["/bin/sh", "-c", "npm install && npm run dev -- --host 0.0.0.0"]
+    command: [ "/bin/sh", "-c", "npm install && npm run dev -- --host 0.0.0.0" ]
     depends_on:
       - backend
     networks:
@@ -143,6 +182,7 @@ volumes:
   db_data:
   frontend_node_modules:
   pg_data:
+  minio_data:
 
 networks:
   bankIQ:

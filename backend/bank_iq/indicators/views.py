@@ -22,6 +22,8 @@ from .serializers import BankIndicator101DataSerializer, BankIndicator101Request
 
 
 class Indicators101APIView(APIView):
+    authentication_classes = []
+
     @extend_schema(
             summary="Список доступных индикаторов формы F101 для банка",
             description=(
@@ -116,6 +118,8 @@ class Indicators101APIView(APIView):
 
 
 class BankIndicator101APIView(APIView):
+    authentication_classes = []
+
     @extend_schema(
             summary="Данные одного индикатора формы F101 для банка",
             description=(
@@ -217,6 +221,8 @@ class BankIndicator101APIView(APIView):
 
 
 class UniqueIndicators101APIView(APIView):
+    authentication_classes = []
+
     @extend_schema(
             summary="Список уникальных индикаторов формы F101",
             description=(
@@ -266,6 +272,8 @@ class UniqueIndicators101APIView(APIView):
 
 
 class Indicators123APIView(APIView):
+    authentication_classes = []
+
     @extend_schema(
             summary="Список доступных индикаторов формы F123 для банка",
             description=(
@@ -326,6 +334,8 @@ class Indicators123APIView(APIView):
 
 
 class BankIndicator123APIView(APIView):
+    authentication_classes = []
+
     @extend_schema(
             summary="Значения индикаторов формы F123 для банка на дату",
             description=(
@@ -407,6 +417,8 @@ class BankIndicator123APIView(APIView):
 
 
 class BankIndicator810APIView(APIView):
+    authentication_classes = []
+
     @extend_schema(
             summary="Значения индикаторов формы F810 для банка на дату",
             description=(
