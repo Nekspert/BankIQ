@@ -45,3 +45,9 @@ body {
     height: 5px;
   }
 }
+
+@media (max-width: 768px) {
+  #root {
+    padding-inline: 20px;
+  }
+}

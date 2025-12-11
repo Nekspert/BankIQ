@@ -89,7 +89,7 @@
       z-index: 4;
       text-align: left;
       font-weight: 600;
-      min-width: 160px;
+      width: min(400px, 30vw);
       box-shadow: 2px 0 6px $background-primary-shadow;
     }
   }

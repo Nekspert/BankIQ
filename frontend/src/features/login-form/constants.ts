@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
 export const loginSchema = z.object({
-  email: z.string(),
-  password: z.string().min(4),
+  username: z.string().min(1, 'Введите логин'),
+  password: z.string().min(8, 'Минимум 8 символов'),
 });

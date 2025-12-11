@@ -1,0 +1,52 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 2px 6px $background-primary-shadow;
+}
+
+.name {
+  font-size: 22px;
+  font-weight: 600;
+  color: $text-primary;
+}
+
+.username {
+  color: $text-muted;
+  font-size: 15px;
+  margin-top: 4px;
+}
+
+.blockTitle {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 16px;
+  color: $text-primary;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+}
+
+.label {
+  color: $text-muted;
+}
+
+.value {
+  color: $text-primary;
+}

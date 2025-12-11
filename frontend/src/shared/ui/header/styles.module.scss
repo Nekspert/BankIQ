@@ -54,6 +54,11 @@
       height: 40px !important;
       min-height: 40px !important;
       padding: 12px !important;
+      &-image {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+      }
       & > svg {
         width: 20px;
         height: 20px;

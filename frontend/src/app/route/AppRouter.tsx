@@ -4,6 +4,8 @@ import { Layout } from '../Layout';
 import { MainPage } from '@/pages/main';
 import { GeneralPage } from '@/pages/general';
 import { AuthProvider } from '../provider/AuthProvider';
+import { LkPage } from '@/pages/lk/LkPage';
+import { ProtectedRoute } from '@/shared/ui/protected-route/ProtectedRoute';
 
 export const AppRouter = () => {
   return (
@@ -15,6 +17,14 @@ export const AppRouter = () => {
             <Route
               path={AppRoutes.generalStatisticPage}
               element={<GeneralPage />}
+            />
+            <Route
+              path={AppRoutes.lk}
+              element={
+                <ProtectedRoute>
+                  <LkPage />
+                </ProtectedRoute>
+              }
             />
           </Route>
         </Routes>

@@ -13,6 +13,7 @@ type Props = InputHTMLAttributes<HTMLInputElement> & {
   isEditing?: boolean;
   value?: string | number;
   options?: string[];
+  error?: string;
 };
 
 export const Input = forwardRef<HTMLInputElement, Props>(
@@ -26,6 +27,7 @@ export const Input = forwardRef<HTMLInputElement, Props>(
       options = [],
       onChange,
       defaultValue,
+      error,
       ...rest
     } = props;
 
@@ -196,6 +198,7 @@ export const Input = forwardRef<HTMLInputElement, Props>(
             ))}
           </ul>
         )}
+        {error && <div className={styles.errorText}>{error}</div>}
       </div>
     );
   }

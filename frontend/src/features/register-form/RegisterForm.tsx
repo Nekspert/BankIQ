@@ -1,46 +1,86 @@
+import Input from '@/shared/ui/input/Input';
+import type { Form } from './types';
 import { useForm } from 'react-hook-form';
+import type { FC } from 'react';
+import { useAuth } from '@/shared/hooks/useAuth';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useNavigate } from 'react-router-dom';
-import { useEffect, type FC } from 'react';
+import { defaultValues, registerSchema } from './constants';
 import styles from './styles.module.scss';
 import Button from '@/shared/ui/button/Button';
-import { AppRoutes } from '@/shared/config/routes';
-import Input from '@/shared/ui/input/Input';
-import { useAuth } from '@/shared/hooks/useAuth';
-import { registerSchema } from './constants';
-import type { Form } from './types';
 
-export const RegisterForm: FC = () => {
-  const navigate = useNavigate();
-  const { register: regFn, user } = useAuth();
-  const { register, handleSubmit, formState, getValues } = useForm<Form>({
+export const RegisterForm: FC<{ onClose: () => void }> = ({ onClose }) => {
+  const { register: regFn } = useAuth();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setError,
+    clearErrors,
+  } = useForm<Form>({
     resolver: zodResolver(registerSchema),
+    defaultValues,
   });
 
   const onSubmit = async (data: Form) => {
-    await regFn(data.email, data.password);
-  };
+    clearErrors();
 
-  useEffect(() => {
-    if (user) {
-      navigate(AppRoutes.home);
+    try {
+      await regFn(data);
+      onClose();
+    } catch (err: any) {
+      if (
+        err.response?.status === 400 &&
+        typeof err.response.data === 'object'
+      ) {
+        const errorsObj = err.response.data;
+
+        Object.entries(errorsObj).forEach(([field, messages]) => {
+          setError(field as keyof Form, {
+            type: 'server',
+            message: (messages as string[])[0],
+          });
+        });
+      } else {
+        console.error(err);
+      }
     }
-  }, [user, navigate]);
+  };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
       <Input
-        value={getValues().email}
         placeholder="E-mail"
         {...register('email')}
+        error={errors.email?.message}
       />
+
       <Input
-        value={getValues().password}
-        placeholder="Пароль"
+        placeholder="Имя"
+        {...register('firstName')}
+        error={errors.firstName?.message}
+      />
+
+      <Input
+        placeholder="Фамилия"
+        {...register('lastName')}
+        error={errors.lastName?.message}
+      />
+
+      <Input
+        placeholder="Пароль (мин. 8 символов)"
         type="password"
         {...register('password')}
+        error={errors.password?.message}
       />
-      <Button type="submit" disabled={formState.isSubmitting}>
+
+      <Input
+        placeholder="Никнейм (необязательно)"
+        {...register('username')}
+        error={errors.username?.message}
+      />
+
+      <Button type="submit" disabled={isSubmitting}>
         Зарегистрироваться
       </Button>
     </form>

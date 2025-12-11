@@ -1,0 +1,109 @@
+.header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  position: relative;
+}
+
+.avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 2px 6px $background-primary-shadow;
+}
+
+.info {
+  flex: 1;
+}
+
+.name {
+  font-size: 22px;
+  font-weight: 600;
+  color: $text-primary;
+}
+
+.username {
+  color: $text-muted;
+  font-size: 15px;
+  margin-top: 4px;
+}
+
+.editBtn {
+  position: absolute;
+  right: 0;
+  top: 0;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: $background-button-blue-primary;
+  color: white;
+  cursor: pointer;
+  transition: 0.2s;
+
+  &:hover {
+    background: $background-button-blue-primary-hover;
+  }
+}
+
+/* ----- Form ----- */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.formRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label {
+    font-size: 14px;
+    color: $text-muted;
+  }
+
+  input {
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid $text-white-primary;
+    background: $background-secondary;
+    color: $text-primary;
+  }
+}
+
+.preview {
+  width: 120px;
+  height: 120px;
+  border-radius: 12px;
+  object-fit: cover;
+  margin-top: 10px;
+  box-shadow: 0 2px 6px $background-primary-shadow;
+}
+
+.buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.saveBtn {
+  padding: 10px 18px;
+  border-radius: 8px;
+  background: $background-button-blue-primary;
+  color: white;
+  cursor: pointer;
+  transition: 0.2s;
+
+  &:hover {
+    background: $background-button-blue-primary-hover;
+  }
+}
+
+.cancelBtn {
+  padding: 10px 18px;
+  border-radius: 8px;
+  background: $background-button-secondary;
+  color: white;
+  cursor: pointer;
+}

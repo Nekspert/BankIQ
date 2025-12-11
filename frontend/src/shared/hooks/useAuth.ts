@@ -1,19 +1,20 @@
-import { createContext, useContext } from 'react';
-export type User = {
-  id: number;
-  email: string;
-  name: string | null;
-  surname: string | null;
-} | null;
+import type { Form as RegisterForm } from '@/features/register-form/types';
+import {
+  createContext,
+  useContext,
+  type Dispatch,
+  type SetStateAction,
+} from 'react';
+import type { User } from '../types';
 
 export type AuthContextValue = {
-  user?: User;
+  user: User | null;
   isAuthorized: boolean | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<User>;
+  register: (userData: RegisterForm) => Promise<User>;
   logout: () => Promise<void>;
-  refresh: () => Promise<void>;
+  setUser: Dispatch<SetStateAction<User | null>>;
 };
 
 export const AuthContext = createContext<AuthContextValue | undefined>(

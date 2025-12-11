@@ -1,4 +1,5 @@
 export const AppRoutes = {
   home: '/',
-  generalStatisticPage: '/general'
+  generalStatisticPage: '/general',
+  lk: '/lk'
 }
