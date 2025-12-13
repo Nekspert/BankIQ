@@ -13,6 +13,7 @@ import os
 import sys
 from datetime import timedelta
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import dj_database_url
 from environs import Env
@@ -181,24 +182,35 @@ SPECTACULAR_SETTINGS = {
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER", "redis://redis:6379/0")
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_BROKER", "redis://redis:6379/0")
 
-DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+DEFAULT_FILE_STORAGE = "bank_iq.PublicS3Boto3Storage"
 
-AWS_S3_ENDPOINT_URL = os.environ.get("MINIO_ENDPOINT", "http://127.0.0.1:9000")
+MINIO_PUBLIC_ENDPOINT = os.environ.get("MINIO_PUBLIC_ENDPOINT", "http://localhost:9000")
+parsed_public = urlsplit(MINIO_PUBLIC_ENDPOINT)
+
+AWS_S3_ENDPOINT_URL = os.environ.get("MINIO_INTERNAL_ENDPOINT", "http://minio:9000")
+AWS_S3_USE_SSL = parsed_public.scheme == "https"
+AWS_S3_VERIFY = os.environ.get("MINIO_SECURE", "0") == "1"
+AWS_S3_SIGNATURE_VERSION = "s3v4"
+AWS_S3_REGION_NAME = "us-east-1"
+
 AWS_ACCESS_KEY_ID = os.environ.get("MINIO_ACCESS_KEY", "minio-access-key")
 AWS_SECRET_ACCESS_KEY = os.environ.get("MINIO_SECRET_KEY", "minio-secret-key")
 AWS_STORAGE_BUCKET_NAME = os.environ.get("MINIO_BUCKET", "bankiq-media")
 
 AWS_S3_ADDRESSING_STYLE = "path"
-AWS_S3_SECURE = os.getenv("MINIO_SECURE", "0") != "0"
-AWS_S3_USE_SSL = None  # "public-read" (все могут читать)
-AWS_QUERYSTRING_AUTH = True  # если хотите публичные URL (без подписей)
-AWS_S3_FILE_OVERWRITE = False
-AWS_DEFAULT_ACL = 'private'
+AWS_QUERYSTRING_AUTH = False
+AWS_S3_FILE_OVERWRITE = True
+AWS_DEFAULT_ACL = "public-read"
+
+# (опционально) кэширование статических объектов
+AWS_S3_OBJECT_PARAMETERS = {
+    "CacheControl": "max-age=31536000, public"
+}
 
 STATIC_URL = "/static/"
 
-if AWS_S3_ENDPOINT_URL:
-    MEDIA_URL = f"{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/"
+if MINIO_PUBLIC_ENDPOINT:
+    MEDIA_URL = f"{MINIO_PUBLIC_ENDPOINT.rstrip('/')}/{AWS_STORAGE_BUCKET_NAME}/"
 else:
     MEDIA_URL = "/media/"
 

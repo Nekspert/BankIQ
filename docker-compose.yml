@@ -17,6 +17,8 @@ services:
         condition: service_started
       minio:
         condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
     env_file:
       - backend/.env
     environment:

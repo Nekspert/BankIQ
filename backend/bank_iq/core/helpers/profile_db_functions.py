@@ -1,7 +1,7 @@
 import hashlib
 import logging
 from io import BytesIO
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlsplit
 
 import requests
 from django.conf import settings
@@ -91,7 +91,6 @@ def generate_gravatar_avatar(user, size=512) -> str | None:
 
         logger.info(f"Использую S3 хранилище для пользователя {user.id}")
         logger.info(f"Бакет: {s3_storage.bucket_name}")
-        logger.info(f"Endpoint: {settings.AWS_S3_ENDPOINT_URL}")
 
         gravatar_url = _get_gravatar_url(email=email, size=size)
         response = requests.get(gravatar_url, timeout=10)
@@ -113,21 +112,18 @@ def generate_gravatar_avatar(user, size=512) -> str | None:
         content = ContentFile(output_buffer.read())
         saved_key = s3_storage.save(s3_key, content)
 
-        # Проверяем, что файл сохранен
         exists = s3_storage.exists(saved_key)
         logger.info(f"Файл сохранен: {saved_key}, существует: {exists}")
 
         if exists:
             try:
                 url = s3_storage.url(saved_key)
-                logger.info(f"URL файла в S3: {url}")
+                logger.info(f"URL файла в S3 (from storage.url): {url}")
             except Exception as e:
-                logger.warning(f"Не удалось получить URL: {e}")
+                logger.warning(f"Не удалось получить url через storage.url: {e}")
+                logger.info(f"URL [saved_key] файла по fallback: {saved_key}")
 
             return saved_key
-        else:
-            logger.error("Файл не найден в S3 после сохранения!")
-            return None
 
     except requests.RequestException as e:
         logger.error(f"[WARN] Gravatar request failed: {e} [WARN]", exc_info=True)
