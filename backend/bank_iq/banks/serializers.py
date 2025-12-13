@@ -54,3 +54,16 @@ class DateTimesSerializer(serializers.Serializer):
                 "Если исходный объект содержит tzinfo, DRF может конвертировать в UTC (с суффиксом 'Z')."
             )
     )
+
+
+class BankProfileSerializer(BankInfoSerializer):
+    start_and_end_101 = serializers.ListSerializer(child=serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%S%Z'),
+                                                   help_text=(
+                                                       "Список доступных дат формы F101. Каждая дата возвращается в ISO-8601. "
+                                                       "Если исходный объект содержит tzinfo, DRF может конвертировать в UTC (с суффиксом 'Z')."
+                                                   ))
+    start_and_end_123 = serializers.ListSerializer(child=serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%S%Z'),
+                                                   help_text=(
+                                                       "Список доступных дат формы F123. Каждая дата возвращается в ISO-8601. "
+                                                       "Если исходный объект содержит tzinfo, DRF может конвертировать в UTC (с суффиксом 'Z')."
+                                                   ))

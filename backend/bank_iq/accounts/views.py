@@ -43,7 +43,7 @@ from .serializers import (CustomTokenObtainPairSerializer, LogoutSerializer, Pub
                     ],
             ),
             400: OpenApiResponse(description="Ошибка валидации: неверные поля (например, email уже занят)."),
-            500: OpenApiResponse(description="Внутренняя ошибка сервера."),
+            500: OpenApiResponse(description="Внутренняя ошибка сервера"),
         },
 )
 class RegisterView(generics.CreateAPIView):
@@ -92,7 +92,7 @@ class UserMeView(generics.RetrieveUpdateAPIView):
                         ],
                 ),
                 401: OpenApiResponse(description="Unauthorized"),
-                500: OpenApiResponse(description="Внутренняя ошибка сервера."),
+                500: OpenApiResponse(description="Внутренняя ошибка сервера"),
             },
     )
     def get(self, request, *args, **kwargs):
@@ -142,7 +142,7 @@ class UserMeView(generics.RetrieveUpdateAPIView):
                 ),
                 400: OpenApiResponse(description="Ошибка валидации"),
                 401: OpenApiResponse(description="Unauthorized"),
-                500: OpenApiResponse(description="Внутренняя ошибка сервера."),
+                500: OpenApiResponse(description="Внутренняя ошибка сервера"),
             },
     )
     def patch(self, request, *args, **kwargs):
@@ -188,7 +188,7 @@ class UserMeView(generics.RetrieveUpdateAPIView):
             ),
             401: OpenApiResponse(description="Неверные учётные данные"),
             400: OpenApiResponse(description="Неверный формат запроса"),
-            500: OpenApiResponse(description="Внутренняя ошибка сервера."),
+            500: OpenApiResponse(description="Внутренняя ошибка сервера"),
         },
 )
 class LoginView(TokenObtainPairView):
@@ -223,7 +223,7 @@ class LogoutAndBlacklistRefreshTokenView(APIView):
                         ],
                 ),
                 401: OpenApiResponse(description="Unauthorized: недостаточно прав (требуется access token)."),
-                500: OpenApiResponse(description="Внутренняя ошибка сервера."),
+                500: OpenApiResponse(description="Внутренняя ошибка сервера"),
             },
     )
     def post(self, request: Request, *args, **kwargs) -> Response:

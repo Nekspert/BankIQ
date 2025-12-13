@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import AllBanksAPIView, Datetimes101APIView, Datetimes123APIView
+from .views import AllBanksAPIView, BankProfileApiView, Datetimes101APIView, Datetimes123APIView
 
 
 urlpatterns = [
@@ -14,4 +14,8 @@ urlpatterns = [
     path("indicators/f123/bank-datetimes/",
          Datetimes123APIView.as_view(),
          name='indicators.f123.bank_datetimes'),
+
+    path("indicators/bank/<int:reg_number>/",
+         BankProfileApiView.as_view(),
+         name='indicators.bank.bank_profile'),
 ]
